@@ -1,0 +1,28 @@
+# Ignorar entornos virtuales locales
+.venv/
+venv/
+env/
+
+# Ignorar bytecode de Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Ignorar metadatos de paquetes
+**/build
+**/dist
+**/*.egg-info
+
+
+
+# Ignorar archivos de sistema y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Ignorar archivos temporales
+*.swp
+*.tmp
