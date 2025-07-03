@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scraping-pipeline"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.13.4",
+    "polars>=1.29.0",
+    "prefect>=3.4.1",
+    "selenium>=4.32.0",
+    "sentence-transformers>=4.1.0",
+    "sparqlwrapper>=2.0.0",
+    "tqdm>=4.67.1",
+    "minio>=7.2.15",
+    "unidecode>=1.4.0",
+    "webdriver-manager>=4.0.2",
+]
+
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.12",
+]
