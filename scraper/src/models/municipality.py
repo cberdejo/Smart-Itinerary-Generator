@@ -1,0 +1,76 @@
+from typing import List, Optional
+from pydantic import BaseModel
+
+
+class RealEstateAsset(BaseModel):
+    name: str
+    municipality_name: str
+    description: Optional[str]
+    typologies: List[dict]
+    characterization: Optional[str]
+
+    def __str__(self):
+        desc = self.description or "sin descripción"
+        types = (
+            ", ".join([t.get("type", "tipo desconocido") for t in self.typologies])
+            if self.typologies
+            else "sin tipologías"
+        )
+        char = self.characterization or "sin caracterización"
+        return f"El bien inmueble '{self.name}' se caracteriza por: {desc}. Tipologías: {types}. Caracterización: {char}."
+
+
+class IntangibleAsset(BaseModel):
+    name: str
+    municipality_name: str
+    scope: Optional[str]
+    typology: Optional[str]
+    description: Optional[str]
+    date: Optional[str]
+
+    def __str__(self):
+        desc = self.description or "sin descripción"
+        tip = self.typology or "tipología no especificada"
+        scope = self.scope or "ámbito no definido"
+        date = self.date or "fecha no especificada"
+        return f"El bien inmaterial '{self.name}'. Es un inmaterial de tipo {tip}, con un alcance {scope}. Descripción: {desc}. Fecha: {date}."
+
+
+class MunicipalityInfo(BaseModel):
+    name: str
+    description: Optional[str]
+    history: Optional[str]
+    images: Optional[List[str]]
+    ine: Optional[str]
+    capital: Optional[bool]
+    latitude: Optional[float]
+    longitude: Optional[float]
+    has_beach: bool
+    real_estate_assets: List[RealEstateAsset]
+    intangible_assets: List[IntangibleAsset]
+    province_identifier: Optional[int]
+    province_name: Optional[str]
+
+    def get_embedding_text(self) -> str:
+        parts = []
+        parts = [f"{self.name or 'Municipio desconocido'} es un municipio"]
+
+        parts.append(
+            "que es capital de provincia."
+            if self.capital
+            else "que no es capital de provincia."
+        )
+
+        if self.description:
+            parts.append(f"{self.description}")
+
+        if self.history:
+            parts.append(f"{self.history}")
+
+        for asset in self.real_estate_assets:
+            parts.append(str(asset))
+
+        for intangible in self.intangible_assets:
+            parts.append(str(intangible))
+
+        return " ".join(parts)
