@@ -1,11 +1,11 @@
-from app_config.logger import get_logger
-from models.municipality import MunicipalityInfo
-from db_models import Town, Intangible, RealEstate, ImageTown
-import polars as pl
-from sentence_transformers import SentenceTransformer
-from prefect import task
 from typing import List
 from tqdm import tqdm
+from prefect import task
+
+from db_models import Town, Intangible, RealEstate, ImageTown
+from models.municipality import MunicipalityInfo
+from app_config.logger import get_logger
+from app_config.embedder import get_embedding
 
 logger = get_logger("generate_embeddings")
 
@@ -33,13 +33,6 @@ def generate_embeddings(
         logger.warning("No municipalities provided to generate embeddings")
         return []
 
-    # Load SentenceTransformer model
-    try:
-        model = SentenceTransformer("all-MiniLM-L6-v2")
-    except Exception as e:
-        logger.critical(f"Error loading SentenceTransformer model: {e}")
-        return [], [], [], []
-
     BATCH_SIZE = 32
 
     towns: List[Town] = []
@@ -57,17 +50,15 @@ def generate_embeddings(
         current_batch = municipalities[batch_start:batch_end]
 
         try:
-            # Convert batch to strings for encoding
             batch_strings = [item.get_embedding_text() for item in current_batch]
-
-            # Generate embeddings for the entire batch at once
-            batch_embeddings = model.encode(batch_strings)
+            batch_embeddings = get_embedding(batch_strings)
 
             # Create Objects SQLAlchemy
             for offset, (municipality, embedding) in enumerate(
                 zip(current_batch, batch_embeddings)
             ):
                 try:
+                    print(embedding)
                     # ----- Town --------------------------------------------------
                     town = Town(
                         municipality_ine=municipality.ine,

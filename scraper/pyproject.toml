@@ -13,7 +13,6 @@ dependencies = [
     "polars>=1.29.0",
     "prefect>=3.4.1",
     "selenium>=4.32.0",
-    "sentence-transformers>=4.1.0",
     "sparqlwrapper>=2.0.0",
     "tqdm>=4.67.1",
     "minio>=7.2.15",

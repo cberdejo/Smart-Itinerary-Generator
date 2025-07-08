@@ -1,10 +1,10 @@
+from prefect import task
 from collections import defaultdict
 from typing import Optional, List
 from models.municipality import (
     MunicipalityInfo,
     BaseModel,
 )
-from prefect import task
 
 
 def normalize_municipality_name(name: str) -> str:
