@@ -1,13 +1,5 @@
 # Utils Project
 
-[![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
-[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-504848?style=for-the-badge&logo=sqlalchemy&logoColor=white)
-
 This module provides common utilities for both the `backend` and `scraper` modules, including PostgreSQL database configuration, a logging system, and ORM models representing Andalusian municipalities, their images, and their tangible and intangible heritage.
 
 ---
@@ -16,6 +8,7 @@ This module provides common utilities for both the `backend` and `scraper` modul
 
 - 🔧 Database configuration using SQLAlchemy (`app_config/postgres.py`)
 - 🧾 Configurable logging system (`app_config/logger.py`)
+- 
 - 🏛️ Data models for:
   - Municipalities (`town.py`)
   - Intangible heritage assets (`intangible.py`)
@@ -29,6 +22,7 @@ This module provides common utilities for both the `backend` and `scraper` modul
 utils-project/
 ├─ src/
 │  ├─ app_config/
+│  │  ├─ embedder.py            # Model for creating embedding
 │  │  ├─ logger.py              # Logger configuration
 │  │  └─ postgres.py            # PostgreSQL engine and session setup
 │  ├─ db_models/

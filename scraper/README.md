@@ -1,34 +1,10 @@
 # Scraper  
 
-[![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
-[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![MinIO](https://img.shields.io/badge/MinIO-FF4F00?style=for-the-badge&logo=MinIO&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Selenium](https://img.shields.io/badge/Selenium-43B02A?style=for-the-badge&logo=selenium&logoColor=white)
-![BeautifulSoup](https://img.shields.io/badge/BeautifulSoup-4B0082?style=for-the-badge)
-![SentenceTransformers](https://img.shields.io/badge/SentenceTransformer-FFCC00?style=for-the-badge)
-
-
 This module is responsible for scraping data from the web. It uses various libraries to fetch and parse HTML content, extract relevant information, and store it in a structured format. 
 
 This module contains a data pipeline for collecting, processing, and storing cultural and tourism information about municipalities in Andalusia, Spain. It integrates scraping, enrichment, embedding generation, and database storage using Prefect, Selenium, Sentence Transformers, and SQLAlchemy.
 
 
-
-## 🚀 Main Technologies Used
-
-- **Python 3.12**: Main programming language.
-- **Prefect**: Orchestrates and schedules scraping and data-processing tasks.
-- **PostgreSQL**: Stores structured data and embeddings.
-- **MinIO**: Object storage compatible with Amazon S3, used for storing tasks reports.
-- **Selenium**: Automates interactions with dynamic websites.
-- **BeautifulSoup**: Parses and extracts data from static HTML.
-- **SentenceTransformer**: Generates semantic embeddings for similarity comparison.
-- **SQLAlchemy**: ORM for interacting with PostgreSQL.
 
 ## 🗂️ Project Structure
 
@@ -103,13 +79,6 @@ MINIO_ROOT_PASSWORD="minioadmin"
 MINIO_HOST="localhost"
 MINIO_PORT="9000"
 ```
-
----
-
-
-
-
-
 
 ## 🧪 Main Scripts Overview
 ### `src/pipeline/main.py`
@@ -217,14 +186,6 @@ Extracts task metadata from Prefect task runs and uploads a report to MinIO in J
 - Organizes metadata into structured records and uploads it to a versioned object path in MinIO.
 
 ![alt text](../screenshots/minio.png)
-
-## 🧠 Why Use Embeddings?
-
-Embeddings convert apartment descriptions into **numerical vectors** that capture semantic meaning. This enables **search by similarity** (e.g., "Find apartments like this one") using metrics like **cosine similarity**.
-
-You can query similar listings directly from the database using vector extensions such as [pgvector](https://github.com/pgvector/pgvector) or [PGEmbedding](https://python.langchain.com/docs/integrations/vectorstores/pgembedding/), or export them to a vector database like Qdrant, Pinecone, or FAISS.
-
-This transforms your scraped data into a **semantic search engine** for real estate listings.
 
 
 
