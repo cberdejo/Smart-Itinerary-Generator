@@ -16,7 +16,7 @@ from tasks.upload_report import save_task_metadata_to_minio
 
 @flow(
     name="Town Scraper",
-    retries=1,
+    retries=3,
     retry_delay_seconds=5,
     task_runner=ConcurrentTaskRunner(),
 )
@@ -39,10 +39,6 @@ def main():
         beach_towns=beach_map,
         iaph_data=iaph_data,
     )
-    # Filter municipalities with images
-    municipality_info_with_images = [
-        municipality for municipality in municipality_info_list if municipality.images
-    ]
 
     # Generate embeddings and create pydantic objects
     towns, intangible_assets, real_estate_assets, images = generate_embeddings(
