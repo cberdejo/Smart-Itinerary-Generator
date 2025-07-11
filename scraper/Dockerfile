@@ -24,3 +24,7 @@ COPY scraper /app/scraper
 RUN uv venv .venv && \
     uv pip install -e utils-project && \
     uv pip install -e scraper
+
+FROM builder AS production
+WORKDIR /app
+CMD [ "uv", "run", "scraper/src/pipeline/main.py" ]
