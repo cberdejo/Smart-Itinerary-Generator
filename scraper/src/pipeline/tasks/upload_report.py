@@ -9,7 +9,7 @@ from prefect.client.orchestration import get_client
 from prefect.server.schemas.filters import TaskRunFilter
 
 
-from config.minio import get_minio, setup_minio_buckets, BUCKET
+from helpers.minio import get_minio, setup_minio_buckets, BUCKET
 
 
 def json_serial(obj):

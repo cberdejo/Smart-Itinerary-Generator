@@ -5,7 +5,7 @@ from prefect import task
 from db_models import Town, Intangible, RealEstate, ImageTown
 from models.municipality import MunicipalityInfo
 from app_config.logger import get_logger
-from app_config.embedder import get_embedding
+from app_helpers.embedder import get_embedding
 
 logger = get_logger("generate_embeddings")
 
@@ -69,6 +69,8 @@ def generate_embeddings(
                         province_identifier=getattr(
                             municipality, "province_identifier", None
                         ),
+                        description=municipality.description,
+                        history=municipality.history,
                         province_name=getattr(municipality, "province_name", None),
                         has_beach=municipality.has_beach,
                         embeddings=embedding.tolist(),

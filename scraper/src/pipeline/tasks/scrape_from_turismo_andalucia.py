@@ -2,7 +2,7 @@ import time
 import re
 from typing import Dict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from config.selenium import close_all_drivers, get_driver
+from helpers.selenium import close_all_drivers, get_driver
 from unidecode import unidecode
 
 from selenium.webdriver.support.ui import WebDriverWait

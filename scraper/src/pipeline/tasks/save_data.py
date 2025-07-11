@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from app_config.logger import get_logger
-from app_config.postgres import get_engine, get_session, Base
-from db_models import Town, Intangible, RealEstate, ImageTown
+from helpers.postgres import get_engine, get_session
+from db_models import Town, Intangible, RealEstate, ImageTown, Base
 from prefect import task
 
 logger = get_logger("load_to_postgres")
