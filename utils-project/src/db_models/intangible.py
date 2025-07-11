@@ -1,13 +1,13 @@
-
 from sqlalchemy import (
     Column,
     String,
     ForeignKey,
     PrimaryKeyConstraint,
 )
-from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from app_config.postgres import Base
+
+
 class Intangible(Base):
     __tablename__ = "intangible_assets"
 

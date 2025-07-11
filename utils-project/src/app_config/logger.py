@@ -14,7 +14,7 @@ def get_logger(name: str = "real_estate_scraper") -> logging.Logger:
     """
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
-
+    
     if not logger.handlers:
         handler = logging.StreamHandler()
         formatter = logging.Formatter(

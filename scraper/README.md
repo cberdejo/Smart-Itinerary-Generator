@@ -5,14 +5,14 @@ This module is responsible for scraping data from the web. It uses various libra
 This module contains a data pipeline for collecting, processing, and storing cultural and tourism information about municipalities in Andalusia, Spain. It integrates scraping, enrichment, embedding generation, and database storage using Prefect, Selenium, Sentence Transformers, and SQLAlchemy.
 
 
-
 ## 🗂️ Project Structure
 
 ```
 ├─ 📁scraper
 │  ├─ 📁src
-│  │  ├─ 📁config
+│  │  ├─ helpers
 │  │  │  ├─ 📄minio.py
+│  │  │  ├─ 📄postgres.py
 │  │  │  └─ 📄selenium.py
 │  │  ├─ 📁models
 │  │  │  └─ 📄municipality.py

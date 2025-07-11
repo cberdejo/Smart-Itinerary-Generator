@@ -9,6 +9,7 @@ from sqlalchemy.orm import relationship
 
 from app_config.postgres import Base
 
+
 class Town(Base):
     __tablename__ = "towns"
 
@@ -30,4 +31,7 @@ class Town(Base):
     real_estate_assets = relationship(
         "RealEstate", back_populates="town", cascade="all, delete-orphan"
     )
-    images = relationship("ImageTown", back_populates="town", cascade="all, delete-orphan")
+    images = relationship(
+        "ImageTown", back_populates="town", cascade="all, delete-orphan"
+    )
+    

@@ -10,9 +10,6 @@ from sqlalchemy.orm import relationship
 from app_config.postgres import Base
 
 
-
-
-
 class RealEstate(Base):
     __tablename__ = "real_estate_assets"
 
@@ -25,6 +22,3 @@ class RealEstate(Base):
     __table_args__ = (PrimaryKeyConstraint("municipality_ine", "name"),)
 
     town = relationship("Town", back_populates="real_estate_assets")
-
-
-

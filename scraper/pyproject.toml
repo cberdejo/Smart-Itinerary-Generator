@@ -18,6 +18,7 @@ dependencies = [
     "minio>=7.2.15",
     "unidecode>=1.4.0",
     "webdriver-manager>=4.0.2",
+    "psycopg2-binary>=2.9.10",
 ]
 
 

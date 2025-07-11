@@ -1,12 +1,11 @@
 # Utils Project
 
-This module provides common utilities for both the `backend` and `scraper` modules, including PostgreSQL database configuration, a logging system, and ORM models representing Andalusian municipalities, their images, and their tangible and intangible heritage.
+This module provides common utilities for both the `backend` and `scraper` modules, including , a logging system, and ORM models representing Andalusian municipalities, and their tangible and intangible heritage assets.
 
 ---
 
 ## ⚙️ Features
 
-- 🔧 Database configuration using SQLAlchemy (`app_config/postgres.py`)
 - 🧾 Configurable logging system (`app_config/logger.py`)
 - 
 - 🏛️ Data models for:
@@ -22,9 +21,10 @@ This module provides common utilities for both the `backend` and `scraper` modul
 utils-project/
 ├─ src/
 │  ├─ app_config/
-│  │  ├─ embedder.py            # Model for creating embedding
+│  │  ├─ postgres.py            
 │  │  ├─ logger.py              # Logger configuration
-│  │  └─ postgres.py            # PostgreSQL engine and session setup
+│  ├─ app_helpers/
+│  │  ├─ embedder.py            # Model for creating embedding
 │  ├─ db_models/
 │  │  ├─ town.py                # Main municipality model
 │  │  ├─ intangible.py          # Intangible heritage model
