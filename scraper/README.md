@@ -95,7 +95,6 @@ Coordinates the overall pipeline execution.
 
 Tasks are composed using Prefect's `@flow` and `@task` decorators and executed concurrently where possible for efficiency.
 
-![prefect-server](../screenshots/prefect-server.png)
 
 ### 📄Tasks
 
@@ -185,9 +184,68 @@ Extracts task metadata from Prefect task runs and uploads a report to MinIO in J
 - Serializes datetime and UUID objects safely to JSON.
 - Organizes metadata into structured records and uploads it to a versioned object path in MinIO.
 
-![alt text](../screenshots/minio.png)
 
+## 🧭 Monitoring the Pipeline
+ 
 
+This project integrates **Prefect** and **MinIO** for monitoring and reporting.
+
+### 🚦 Launch Prefect Server
+
+To monitor flow runs, start the Prefect UI:
+
+```bash
+prefect server start
+```
+
+Open the UI in your browser:
+
+```
+http://localhost:4200
+```
+
+You can inspect:
+
+- Registered flows and tasks
+- Run status and duration
+- Logs and errors
+
+📌 *Example:*
+![prefect-server](../screenshots/prefect-server.png)
+
+---
+
+### 📁 Access Reports in MinIO
+
+MinIO stores JSON reports about each pipeline run.
+
+If you're using Docker Compose, MinIO is available:
+
+```
+http://localhost:9100
+```
+
+**Login with default credentials** (if not using Docker Compose, username and password should be equal to .env)
+
+```
+Username: minioadmin
+Password: minioadmin
+```
+
+Then:
+
+1. Open the `reports`  bucket
+2. Download JSON files uploaded by the `upload_report.py` task
+3. Analyze task durations, results, and metadata
+
+📌 *Example:*
+![minio](../screenshots/minio.png)
+
+---
+
+> These reports help with auditing, debugging, and performance monitoring of scraping tasks.
+
+---
 
 ## 📄 License
 
