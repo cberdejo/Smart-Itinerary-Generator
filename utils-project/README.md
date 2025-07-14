@@ -7,7 +7,6 @@ This module provides common utilities for both the `backend` and `scraper` modul
 ## ⚙️ Features
 
 - 🧾 Configurable logging system (`app_config/logger.py`)
-- 
 - 🏛️ Data models for:
   - Municipalities (`town.py`)
   - Intangible heritage assets (`intangible.py`)
