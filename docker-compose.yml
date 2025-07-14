@@ -37,6 +37,41 @@ services:
 
 
 
+  valhalla:
+    image: ghcr.io/nilsnolde/docker-valhalla/valhalla:latest
+    container_name: valhalla
+    ports:
+      - "8002:8002"  
+    volumes:
+      - ./valhalla_files:/custom_files
+    environment:
+      - tile_urls=https://download.geofabrik.de/europe/spain/andalucia-latest.osm.pbf
+      - serve_tiles=True
+      - use_tiles_ignore_pbf=False
+      - force_rebuild=False
+      - build_tiles=True              
+      - build_tar=True
+      - server_threads=1
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: /backend/Dockerfile
+    container_name: backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - valhalla
+    environment:
+      VALHALLA_URL: http://valhalla:5000/isochrone
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: scraper
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+    
   scraper:
     build:
       context: .
@@ -62,3 +97,4 @@ volumes:
   postgres_data:
   minio_data:
   prefect_data:
+  valhalla_files:
