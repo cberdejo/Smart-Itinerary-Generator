@@ -27,7 +27,7 @@
 - [🚀 Main Technologies Used](#main-technologies-used)
 - [🐳 Run with Docker](#run-with-docker)
 - [🧠 Why Use Embeddings?](#why-use-embeddings)
-- [📦 Modules](#modules)
+- [📦 Modules Summaries](#Module-Summaries)
   - [scraper](#scraper)
   - [utils-project](#utils-project)
   - [backend](#backend)
@@ -37,7 +37,7 @@
 
 ## 📦 Project Overview <a id="project-overview"></a>
 
-[TO DO]
+This large project is divided into three modules. First, data from municipalities in Andalusia is scraped and used to generate a database with embeddings. These embeddings are then used by an `API` that filters based on user preferences and searches using cosine similarity to find the municipalities that best match what the user is looking for. Finally, a frontend displays both a form to submit data to the `API` and an interactive map with the results. The project mainly focuses on filtering by monuments, historical heritage, and popular festivals and traditions.
 
 ## 🗂️ Project Structure <a id="project-structure"></a>
 
@@ -108,31 +108,63 @@ In this project, we work only with towns in Andalusia, which means the total dat
 It keeps the stack simple and fully in Python.
 
 This makes `scikit-learn` a clean and practical choice for computing similarity between embeddings.
-## Modules
 
-### [scraper](/scraper/)
-[To do]
-### [utils-project](/utils-project/)
-[To do]
-### [backend](/backend/)
-[To do]
+## 📦 Module Summaries
 
-### [frontend](/frontend/)
+###  [`scraper`](/scraper/)
+This module automates the collection of tourism and cultural data from Andalusian towns. It leverages **Selenium**, **BeautifulSoup**, **Prefect**, and **Sentence Transformers** to:
+
+- Fetch town data from official sources (Junta de Andalucía, Wikipedia, IAPH, and andalucia.org)
+- Generate semantic **embeddings**
+- Store the structured results in **PostgreSQL**
+- Upload execution reports to **MinIO**
+
+📌 *Example:*
+![prefect-server](./screenshots/prefect-server.png)
+
+---
+
+###  [`utils-project`](/utils-project/)
+This is a shared utility library used by both the scraper and backend modules. It includes:
+
+- 📦 SQLAlchemy ORM models for towns, real estate heritage, intangible cultural assets, and town images
+- 🧠 `embedder.py` module for generating sentence embeddings
+- 🧾 A configurable logging system
+
+📌 *Example:*
+![models](./screenshots/postgres.png)
+
+---
+
+###  [`backend`](/backend/)
+A **FastAPI**-based microservice that:
+
+- Generates personalized travel itineraries based on user input and **semantic similarity**
+- Uses **Valhalla** to compute real driving times between towns
+- Exposes endpoints like `/api/v1/itinerary` and `/api/v1/health`
+- Scores towns using **cosine similarity** between user preferences and embeddings
+
+📌 *Example of API interface:*
+
+![swagger](./screenshots/swagger.png)
+
+---
+
+### [`frontend`](/frontend/)
+A modern **React + Tailwind + Leaflet** frontend that:
+
+- Offers a dynamic form for setting preferences and picking a location
+- Displays results as interactive routes and cards on a live map
+- Allows users to download a **PDF report** of the suggested itinerary
+
+📌 *UI Example:*
+![form1](./screenshots/form1.png)  
+![itinerary2](./screenshots/itinerary1.png)
+
+---
+
 
 
 ## 📄 License <a id="license"> </a>
 
 MIT – free to use, modify and distribute.
-
-
-
-
-
-
-
-
-
-
-
-
-
