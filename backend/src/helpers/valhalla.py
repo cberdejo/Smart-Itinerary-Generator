@@ -59,7 +59,6 @@ async def get_optimal_route(locations: list[Coordinate]) -> Trip:
         "costing": "auto",
         "units": "kilometers",
     }
-    print(payload)
 
     try:
         async with httpx.AsyncClient() as client:

@@ -23,7 +23,7 @@ async def health_check(db: AsyncSession = Depends(get_db)):
     """
     try:
         await db.execute(text("SELECT 1"))
-        return   {"status": "ok", "message": "API is running", "database": "connected"}
+        return {"status": "ok", "message": "API is running", "database": "connected"}
     except Exception as e:
         logger.error(f"Database health check failed: {e}")
         return {
