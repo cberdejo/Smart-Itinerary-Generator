@@ -14,7 +14,7 @@ province_identifiers = {
 
 
 @task
-def get_municipios_name_and_ubi() -> list:
+def get_municipality_name_and_ubi() -> list:
     """
     Fetches municipalities from Junta de Andalucía API and filters them by province identifiers.
     Returns:
