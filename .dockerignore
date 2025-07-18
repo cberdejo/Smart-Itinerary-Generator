@@ -1,28 +1,30 @@
-# Ignorar entornos virtuales locales
+#Frontend
+node_modules
+# Ignore venvs
 .venv/
 venv/
 env/
 
-# Ignorar bytecode de Python
+# Ignore bytecode python
 *.pyc
 *.pyo
 *.pyd
 __pycache__/
 
-# Ignorar metadatos de paquetes
+# Ignorae package metadata
 **/build
 **/dist
 **/*.egg-info
 
 
 
-# Ignorar archivos de sistema y editores
+# Ignorar system and editor
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
 *.log
 
-# Ignorar archivos temporales
+# Ignore temp files
 *.swp
 *.tmp

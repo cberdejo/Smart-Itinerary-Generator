@@ -145,7 +145,6 @@ A **FastAPI**-based microservice that:
 - Scores towns using **cosine similarity** between user preferences and embeddings
 
 📌 *Example of API interface:*
-
 ![swagger](./screenshots/swagger.png)
 
 ---
