@@ -204,7 +204,7 @@ def get_towns_info_from_turismo_andalucia(
         List[dict]: Extracted tourism information.
     """
 
-    base_url = "https://andalucia.org/es/"
+    base_url = "http://andalucia.org/es/"
     enriched: list[dict] = []
 
     def worker(town: dict) -> dict:

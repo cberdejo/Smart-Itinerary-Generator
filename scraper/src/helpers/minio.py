@@ -1,23 +1,28 @@
-import os
-from dotenv import load_dotenv
 from app_config.logger import get_logger
 from minio import Minio, S3Error
 
-load_dotenv()
 
 logger = get_logger("minio")
 
 BUCKET = "reports"
 
 
-def get_minio():
-    host = os.getenv("MINIO_HOST", "localhost")
-    port = os.getenv("MINIO_PORT", "9000")
-    endpoint = f"{host}:{port}"
+def get_minio(minio_endpoint, minio_access_key, minio_secret_key):
+    """
+    Returns a Minio client instance.
+
+    Args:
+        minio_endpoint (str): Minio endpoint.
+        minio_access_key (str): Minio access key.
+        minio_secret_key (str): Minio secret key.
+
+    Returns:
+        Minio: Minio client instance.
+    """
     return Minio(
-        endpoint=endpoint,
-        access_key=os.getenv("MINIO_ROOT_USER"),
-        secret_key=os.getenv("MINIO_ROOT_PASSWORD"),
+        endpoint=minio_endpoint,
+        access_key=minio_access_key,
+        secret_key=minio_secret_key,
         secure=False,
     )
 

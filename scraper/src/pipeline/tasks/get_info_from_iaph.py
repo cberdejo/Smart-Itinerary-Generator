@@ -158,7 +158,9 @@ async def get_full_bienes_data_async(
     )
 
     try:
-        async with httpx.AsyncClient(timeout=30.0, headers=headers) as client:
+        async with httpx.AsyncClient(
+            timeout=30.0, headers=headers, verify=False
+        ) as client:
             r = await client.get(base_url)
             r.raise_for_status()
             raw_data = r.json()

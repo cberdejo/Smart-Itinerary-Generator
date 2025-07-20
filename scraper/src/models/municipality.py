@@ -1,13 +1,12 @@
-from typing import List, Optional
 from pydantic import BaseModel
 
 
 class RealEstateAsset(BaseModel):
     name: str
     municipality_name: str
-    description: Optional[str]
-    typologies: List[dict]
-    characterization: Optional[str]
+    description: str | None
+    typologies: list[dict]
+    characterization: str | None
 
     def __str__(self):
         desc = self.description or "sin descripción"
@@ -23,10 +22,10 @@ class RealEstateAsset(BaseModel):
 class IntangibleAsset(BaseModel):
     name: str
     municipality_name: str
-    scope: Optional[str]
-    typology: Optional[str]
-    description: Optional[str]
-    date: Optional[str]
+    scope: str | None
+    typology: str | None
+    description: str | None
+    date: str | None
 
     def __str__(self):
         desc = self.description or "sin descripción"
@@ -38,18 +37,18 @@ class IntangibleAsset(BaseModel):
 
 class MunicipalityInfo(BaseModel):
     name: str
-    description: Optional[str]
-    history: Optional[str]
-    images: Optional[List[str]]
-    ine: Optional[str]
-    capital: Optional[bool]
-    latitude: Optional[float]
-    longitude: Optional[float]
+    description: str | None
+    history: str | None
+    images: list[str] | None
+    ine: str | None
+    capital: bool | None
+    latitude: float | None
+    longitude: float | None
     has_beach: bool
-    real_estate_assets: List[RealEstateAsset]
-    intangible_assets: List[IntangibleAsset]
-    province_identifier: Optional[int]
-    province_name: Optional[str]
+    real_estate_assets: list[RealEstateAsset]
+    intangible_assets: list[IntangibleAsset]
+    province_identifier: int | None
+    province_name: str | None
 
     def get_embedding_text(self) -> str:
         parts = []

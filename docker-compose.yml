@@ -83,11 +83,7 @@ services:
       - valhalla
     environment:
       VALHALLA_URL: http://valhalla:5000/isochrone
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: scraper
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: "5432"
+      PGURI: postgresql://postgres:mysecretpassword@postgres:5432/scraper
     
   scraper:
     build:
@@ -100,15 +96,10 @@ services:
       - prefect-server
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: scraper
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: "5432"
+      PGURI: postgresql+psycopg2://postgres:mysecretpassword@postgres:5432/scraper
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin 
-      MINIO_HOST: minio
-      MINIO_PORT: "9000"
+      MINIO_ENDPOINT: minio:9000
 
 volumes:
   postgres_data:

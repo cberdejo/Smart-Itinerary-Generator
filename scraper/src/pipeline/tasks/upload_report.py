@@ -26,9 +26,16 @@ def json_serial(obj):
 
 
 @task
-async def save_task_metadata_to_minio() -> None:
+async def save_task_metadata_to_minio(
+    minio_url: str, minio_access_key: str, minio_secret_key: str
+) -> None:
     """
     Save task metadata to MinIO
+
+    Args:
+        minio_url (str): MinIO endpoint
+        minio_access_key (str): MinIO access key
+        minio_secret_key (str): MinIO secret key
 
     """
     # Obtener contexto y client de Prefect
@@ -81,7 +88,7 @@ async def save_task_metadata_to_minio() -> None:
     byte_stream = BytesIO(json_bytes)
     byte_stream.seek(0)
 
-    minio_client = get_minio()
+    minio_client = get_minio(minio_url, minio_access_key, minio_secret_key)
     setup_minio_buckets(minio_client)
 
     timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")

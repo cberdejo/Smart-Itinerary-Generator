@@ -68,16 +68,11 @@ python src/pipeline/main.py
 Rename `.env-template` to `.env` and customize if needed:
 
 ```env
-POSTGRES_DB="scraper"
-POSTGRES_USER="postgres"
-POSTGRES_PASSWORD="mysecretpassword"
-POSTGRES_HOST="localhost"
-POSTGRES_PORT="5432"
+PGURI=postgresql+psycopg2://your_user:your_password@your_host:5432/your_database
 
 MINIO_ROOT_USER="minioadmin"
 MINIO_ROOT_PASSWORD="minioadmin"
-MINIO_HOST="localhost"
-MINIO_PORT="9000"
+MINIO_ENDPOINT="localhost:9000"
 ```
 
 ## 🧪 Main Scripts Overview

@@ -58,7 +58,6 @@ def generate_embeddings(
                 zip(current_batch, batch_embeddings)
             ):
                 try:
-                    print(embedding)
                     # ----- Town --------------------------------------------------
                     town = Town(
                         municipality_ine=municipality.ine,

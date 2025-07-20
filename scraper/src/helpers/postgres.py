@@ -1,30 +1,15 @@
-import os
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-load_dotenv()
 
-
-def get_engine():
+def get_engine(connection_string: str):
     """
-    Creates and returns a SQLAlchemy engine for connecting to a PostgreSQL database.
-    The connection parameters are retrieved from environment variables:
-    - POSTGRES_USER: The username for the database (default: 'postgres').
-    - POSTGRES_PASSWORD: The password for the database (default: 'mysecretpassword').
-    - POSTGRES_HOST: The hostname of the database server (default: 'localhost').
-    - POSTGRES_PORT: The port number of the database server (default: '5432').
-    - POSTGRES_DB: The name of the database (default: 'postgres').
+    Creates and returns an SQLAlchemy engine for connecting to a PostgreSQL database.
+    Args:
+        connection_string (str): The connection string for the PostgreSQL database.
     Returns:
-        sqlalchemy.engine.base.Engine: A SQLAlchemy engine instance configured for the PostgreSQL database.
+        sqlalchemy.engine.base.Engine: A new SQLAlchemy engine instance.
     """
-    user = os.getenv("POSTGRES_USER", "postgres")
-    password = os.getenv("POSTGRES_PASSWORD", "mysecretpassword")
-    host = os.getenv("POSTGRES_HOST", "localhost")
-    port = os.getenv("POSTGRES_PORT", "5432")
-    db = os.getenv("POSTGRES_DB", "postgres")
-
-    connection_string = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
 
     return create_engine(connection_string)
 
