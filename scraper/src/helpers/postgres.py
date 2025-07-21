@@ -1,8 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from config.settings import settings
 
 
-def get_engine(connection_string: str):
+def get_engine():
     """
     Creates and returns an SQLAlchemy engine for connecting to a PostgreSQL database.
     Args:
@@ -11,7 +12,7 @@ def get_engine(connection_string: str):
         sqlalchemy.engine.base.Engine: A new SQLAlchemy engine instance.
     """
 
-    return create_engine(connection_string)
+    return create_engine(settings.pguri)
 
 
 def get_session(engine):

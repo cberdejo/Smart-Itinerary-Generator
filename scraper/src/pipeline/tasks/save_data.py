@@ -124,7 +124,6 @@ def deduplicate_records(records: List[Any], key_func) -> List[Any]:
 # ──────────────────────────────────────────────────────────────────────────────
 @task
 def load_info_to_postgres(
-    pg_uri: str,
     new_towns: List[Town],
     new_intangible_assets: List[Intangible],
     new_real_estate_assets: List[RealEstate],
@@ -144,8 +143,6 @@ def load_info_to_postgres(
         batch_size (int, optional): Number of records to process in each batch.
             Defaults to 1,000.
         new_images (List[ImageTown]): List of image records to be inserted or updated.
-        pg_uri (str, optional): Connection string for the PostgreSQL database.
-            Defaults to "postgresql+psycopg2://your_user:your_password@your_host:port/your_database".
     Returns:
         int: Returns 0 if the operation is successful, or 1 if an error occurs.
     Raises:
@@ -164,7 +161,7 @@ def load_info_to_postgres(
     session = None
 
     try:
-        engine = get_engine(pg_uri)
+        engine = get_engine()
         Base.metadata.create_all(engine)  # Create tables if they don't exist
         session: Session = get_session(engine)
     except Exception as e:

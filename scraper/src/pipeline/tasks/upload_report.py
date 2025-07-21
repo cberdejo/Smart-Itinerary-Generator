@@ -26,19 +26,10 @@ def json_serial(obj):
 
 
 @task
-async def save_task_metadata_to_minio(
-    minio_url: str, minio_access_key: str, minio_secret_key: str
-) -> None:
+async def save_task_metadata_to_minio() -> None:
     """
     Save task metadata to MinIO
-
-    Args:
-        minio_url (str): MinIO endpoint
-        minio_access_key (str): MinIO access key
-        minio_secret_key (str): MinIO secret key
-
     """
-    # Obtener contexto y client de Prefect
 
     context = get_run_context()
     flow_run_id = context.task_run.flow_run_id
@@ -80,7 +71,6 @@ async def save_task_metadata_to_minio(
             }
         )
 
-    # Convertir a JSON con serializador seguro
     json_bytes = json.dumps(
         task_data, indent=2, default=json_serial, ensure_ascii=False
     ).encode("utf-8")

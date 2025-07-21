@@ -47,17 +47,11 @@ def main():
         municipality_info_list
     )
 
-    settings = ScraperSettings()
-
     # Save data in DB
-    load_info_to_postgres(
-        settings.pguri, towns, intangible_assets, real_estate_assets, images
-    )
+    load_info_to_postgres(towns, intangible_assets, real_estate_assets, images)
 
     # Upload task report in minio
-    save_task_metadata_to_minio.submit(
-        settings.minio_uri, settings.minio_user, settings.minio_password
-    ).result()  # await
+    save_task_metadata_to_minio.submit().result()  # await
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ class ScraperSettings(BaseSettings):
     minio_password: str = Field(
         ..., description="Minio root password", alias="MINIO_ROOT_PASSWORD"
     )
-    minio_uri: str = Field(
+    minio_url: str = Field(
         ...,
         description="Minio endpoint with this format host:port",
         alias="MINIO_ENDPOINT",
@@ -16,3 +16,6 @@ class ScraperSettings(BaseSettings):
 
     class Config:
         env_file = ".env"
+
+
+settings = ScraperSettings()

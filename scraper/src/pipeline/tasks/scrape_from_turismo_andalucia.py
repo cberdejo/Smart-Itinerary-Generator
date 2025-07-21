@@ -217,7 +217,6 @@ def get_towns_info_from_turismo_andalucia(
         url = f"{base_url}{normalized_name}"
         driver = get_driver(headless=True)
 
-        # `scrap_tourism_url` must accept an existing driver (or be adapted accordingly)
         try:
             scraped = scrap_tourism_url(driver=driver, url=url, verbose=False)
         except Exception as e:
@@ -241,13 +240,12 @@ def get_towns_info_from_turismo_andalucia(
 
     try:
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(worker, town) for town in towns]
+            futures = [executor.submit(worker, town) for town in towns[:4]]
             for future in tqdm(
                 as_completed(futures), total=len(towns), desc="Scraping turismo info"
             ):
                 enriched.append(future.result())
     finally:
-        # Make sure we always release browser processes, even if something fails.
         close_all_drivers()
 
     return enriched

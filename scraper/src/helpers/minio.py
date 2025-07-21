@@ -1,28 +1,23 @@
 from app_config.logger import get_logger
 from minio import Minio, S3Error
-
+from config.settings import settings
 
 logger = get_logger("minio")
 
 BUCKET = "reports"
 
 
-def get_minio(minio_endpoint, minio_access_key, minio_secret_key):
+def get_minio():
     """
     Returns a Minio client instance.
-
-    Args:
-        minio_endpoint (str): Minio endpoint.
-        minio_access_key (str): Minio access key.
-        minio_secret_key (str): Minio secret key.
 
     Returns:
         Minio: Minio client instance.
     """
     return Minio(
-        endpoint=minio_endpoint,
-        access_key=minio_access_key,
-        secret_key=minio_secret_key,
+        endpoint=settings.minio_uri,
+        access_key=settings.minio_user,
+        secret_key=settings.minio_password,
         secure=False,
     )
 
