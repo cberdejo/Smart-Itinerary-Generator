@@ -17,10 +17,19 @@ def init_selenium(headless: bool = True) -> webdriver.Chrome:
     """Create and configure a Chrome driver instance."""
     options = Options()
     if headless:
-        options.add_argument("--headless=new")
+        options.add_argument("--headless") # Run Chrome in headless mode
+        options.add_argument("--no-sandbox") 
         options.add_argument("--disable-gpu")
-        options.add_argument("--log-level=3")
-        options.add_argument("--no-sandbox")
+        options.add_argument("--enable-unsafe-swiftshader")
+
+        options.add_argument("--ignore-certificate-errors")
+        options.add_argument("--ignore-ssl-errors=yes")
+        options.add_argument("--allow-insecure-localhost")
+
+        options.add_argument("--memory-pressure-off") # Disable memory pressure events
+        options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
+
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.198 Safari/537.36")
 
     driver = webdriver.Chrome(
         service=Service(ChromeDriverManager().install()),

@@ -2,7 +2,7 @@ from typing import List
 from tqdm import tqdm
 from prefect import task
 
-from db_models import Town, Intangible, RealEstate, ImageTown
+from app_config.db_models import Towns, IntangibleAssets, RealEstateAssets, Images
 from models.municipality import MunicipalityInfo
 from app_config.logger import get_logger
 from app_helpers.embedder import get_embedding
@@ -13,7 +13,7 @@ logger = get_logger("generate_embeddings")
 @task
 def generate_embeddings(
     municipalities: List[MunicipalityInfo],
-) -> tuple[List[Town], List[Intangible], List[RealEstate], List[ImageTown]]:
+) -> tuple[List[Towns], List[IntangibleAssets], List[RealEstateAssets], List[Images]]:
     """
     Generate embeddings for a list of municipalities and create corresponding database objects.
     This function processes a list of MunicipalityInfo objects, generates embeddings using
@@ -35,10 +35,10 @@ def generate_embeddings(
 
     BATCH_SIZE = 32
 
-    towns: List[Town] = []
-    intangible_assets: List[Intangible] = []
-    real_estate_assets: List[RealEstate] = []
-    images: List[ImageTown] = []
+    towns: List[Towns] = []
+    intangible_assets: List[IntangibleAssets] = []
+    real_estate_assets: List[RealEstateAssets] = []
+    images: List[Images] = []
 
     total_items = len(municipalities)
 
@@ -59,7 +59,7 @@ def generate_embeddings(
             ):
                 try:
                     # ----- Town --------------------------------------------------
-                    town = Town(
+                    town = Towns(
                         municipality_ine=municipality.ine,
                         municipality_name=municipality.name,
                         capital_city=municipality.capital,
@@ -80,7 +80,7 @@ def generate_embeddings(
                     if municipality.intangible_assets:
                         for asset in municipality.intangible_assets:
                             intangible_assets.append(
-                                Intangible(
+                                IntangibleAssets(
                                     municipality_ine=municipality.ine,
                                     name=asset.name,
                                     scope=asset.scope,
@@ -94,7 +94,7 @@ def generate_embeddings(
                     if municipality.real_estate_assets:
                         for asset in municipality.real_estate_assets:
                             real_estate_assets.append(
-                                RealEstate(
+                                RealEstateAssets(
                                     municipality_ine=municipality.ine,
                                     name=asset.name,
                                     description=asset.description,
@@ -107,7 +107,7 @@ def generate_embeddings(
                     if municipality.images:
                         for url in municipality.images:
                             images.append(
-                                ImageTown(
+                                Images(
                                     municipality_ine=municipality.ine,
                                     url=url,
                                 )

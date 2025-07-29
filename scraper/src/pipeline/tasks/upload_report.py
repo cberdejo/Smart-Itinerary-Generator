@@ -78,7 +78,7 @@ async def save_task_metadata_to_minio() -> None:
     byte_stream = BytesIO(json_bytes)
     byte_stream.seek(0)
 
-    minio_client = get_minio(minio_url, minio_access_key, minio_secret_key)
+    minio_client = get_minio()
     setup_minio_buckets(minio_client)
 
     timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")

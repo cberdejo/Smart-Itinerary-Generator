@@ -147,7 +147,7 @@ async def fetch_single_bien_async(
 
 
 async def get_full_bienes_data_async(
-    type_: str, max_concurrent_requests: int = 20
+    type_: str, max_concurrent_requests: int = 10
 ) -> list:
     assert type_ in ("inmueble", "inmaterial"), (
         f"Invalid type: {type_}. Must be 'inmueble' or 'inmaterial'"
@@ -159,7 +159,7 @@ async def get_full_bienes_data_async(
 
     try:
         async with httpx.AsyncClient(
-            timeout=30.0, headers=headers, verify=False
+            timeout=30.0, headers=headers, verify=False, follow_redirects=True
         ) as client:
             r = await client.get(base_url)
             r.raise_for_status()

@@ -15,7 +15,7 @@ def get_minio():
         Minio: Minio client instance.
     """
     return Minio(
-        endpoint=settings.minio_uri,
+        endpoint=settings.minio_url,
         access_key=settings.minio_user,
         secret_key=settings.minio_password,
         secure=False,

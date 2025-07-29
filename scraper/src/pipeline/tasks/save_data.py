@@ -1,5 +1,5 @@
 # utils/db/load_to_postgres.py
-from typing import List, Sequence, Iterable, Dict, Any, Union
+from typing import Sequence, Iterable
 from itertools import islice
 
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -8,7 +8,9 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app_config.logger import get_logger
 from helpers.postgres import get_engine, get_session
-from db_models import Town, Intangible, RealEstate, ImageTown, Base
+from app_config.db_models import Towns, IntangibleAssets, RealEstateAssets, Images
+from sqlmodel import SQLModel
+
 from prefect import task
 
 logger = get_logger("load_to_postgres")
@@ -34,7 +36,7 @@ def chunked(iterable: Iterable, size: int) -> Iterable[Sequence]:
         yield chunk
 
 
-def model_to_dict(model_instance) -> Dict[str, Any]:
+def model_to_dict(model_instance) -> dict[str, object]:
     """
     Converts a SQLAlchemy model instance to a dictionary.
 
@@ -42,7 +44,7 @@ def model_to_dict(model_instance) -> Dict[str, Any]:
         model_instance: SQLAlchemy model instance
 
     Returns:
-        Dict[str, Any]: Dictionary representation of the model
+        dict[str, object]: dictionary representation of the model
     """
     if hasattr(model_instance, "__dict__"):
         # Remove SQLAlchemy internal attributes
@@ -59,14 +61,16 @@ def model_to_dict(model_instance) -> Dict[str, Any]:
         return model_instance
 
 
-def build_upsert_stmt(model, rows: List[Union[Dict, Any]], conflict_cols: List[str]):
+def build_upsert_stmt(
+    model: type[SQLModel], rows: list[dict | SQLModel], conflict_cols: list[str]
+):
     """
     Builds an upsert statement for SQLAlchemy.
 
     Args:
         model: SQLAlchemy model to be upserted.
-        rows: List of dictionaries or model instances containing the data to be upserted.
-        conflict_cols: List of column names used to determine uniqueness.
+        rows: list of dictionaries or model instances containing the data to be upserted.
+        conflict_cols: list of column names used to determine uniqueness.
 
     Returns:
         A pg_insert statement with a do_update clause.
@@ -94,16 +98,16 @@ def build_upsert_stmt(model, rows: List[Union[Dict, Any]], conflict_cols: List[s
     return stmt.on_conflict_do_update(index_elements=conflict_cols, set_=update_cols)
 
 
-def deduplicate_records(records: List[Any], key_func) -> List[Any]:
+def deduplicate_records(records: list[object], key_func) -> list[object]:
     """
     Deduplicates records based on a key function.
 
     Args:
-        records: List of records to deduplicate
+        records: list of records to deduplicate
         key_func: Function that extracts the key for deduplication
 
     Returns:
-        List of deduplicated records
+        list of deduplicated records
     """
     seen = set()
     deduplicated = []
@@ -124,10 +128,10 @@ def deduplicate_records(records: List[Any], key_func) -> List[Any]:
 # ──────────────────────────────────────────────────────────────────────────────
 @task
 def load_info_to_postgres(
-    new_towns: List[Town],
-    new_intangible_assets: List[Intangible],
-    new_real_estate_assets: List[RealEstate],
-    new_images: List[ImageTown],
+    new_towns: list[Towns],
+    new_intangible_assets: list[IntangibleAssets],
+    new_real_estate_assets: list[RealEstateAssets],
+    new_images: list[Images],
     batch_size: int = 1_000,
 ) -> int:
     """
@@ -135,14 +139,14 @@ def load_info_to_postgres(
     intangible assets, and real estate assets. Deduplication is applied to avoid
     inserting duplicate records.
     Args:
-        new_towns (List[TownDB]): List of town records to be inserted or updated.
-        new_intangible_assets (List[IntangibleAssetDB]): List of intangible asset
+        new_towns (list[TownDB]): list of town records to be inserted or updated.
+        new_intangible_assets (list[IntangibleAssetDB]): list of intangible asset
             records to be inserted or updated.
-        new_real_estate_assets (List[RealEstateAssetDB]): List of real estate asset
+        new_real_estate_assets (list[RealEstateAssetDB]): list of real estate asset
             records to be inserted or updated.
         batch_size (int, optional): Number of records to process in each batch.
             Defaults to 1,000.
-        new_images (List[ImageTown]): List of image records to be inserted or updated.
+        new_images (list[ImageTown]): list of image records to be inserted or updated.
     Returns:
         int: Returns 0 if the operation is successful, or 1 if an error occurs.
     Raises:
@@ -162,7 +166,7 @@ def load_info_to_postgres(
 
     try:
         engine = get_engine()
-        Base.metadata.create_all(engine)  # Create tables if they don't exist
+        SQLModel.metadata.create_all(engine)  # Create tables if they don't exist
         session: Session = get_session(engine)
     except Exception as e:
         raise RuntimeError(f"Error connecting to database: {e}") from e
@@ -185,7 +189,7 @@ def load_info_to_postgres(
             towns_processed = 0
             for chunk in chunked(deduplicated_towns, batch_size):
                 stmt = build_upsert_stmt(
-                    Town, chunk, conflict_cols=["municipality_ine"]
+                    Towns, chunk, conflict_cols=["municipality_ine"]
                 )
                 result = session.execute(stmt)
                 towns_processed += len(chunk)
@@ -214,7 +218,7 @@ def load_info_to_postgres(
             intangible_processed = 0
             for chunk in chunked(deduplicated_intangible, batch_size):
                 stmt = build_upsert_stmt(
-                    Intangible, chunk, conflict_cols=["municipality_ine", "name"]
+                    IntangibleAssets, chunk, conflict_cols=["municipality_ine", "name"]
                 )
                 result = session.execute(stmt)
                 intangible_processed += len(chunk)
@@ -247,7 +251,7 @@ def load_info_to_postgres(
             real_estate_processed = 0
             for chunk in chunked(deduplicated_real_estate, batch_size):
                 stmt = build_upsert_stmt(
-                    RealEstate, chunk, conflict_cols=["municipality_ine", "name"]
+                    RealEstateAssets, chunk, conflict_cols=["municipality_ine", "name"]
                 )
                 result = session.execute(stmt)
                 real_estate_processed += len(chunk)
@@ -265,7 +269,7 @@ def load_info_to_postgres(
             logger.info(f"Processing {len(new_images)} images...")
 
             stmt = build_upsert_stmt(
-                ImageTown, new_images, conflict_cols=["municipality_ine", "url"]
+                Images, new_images, conflict_cols=["municipality_ine", "url"]
             )
 
             result = session.execute(stmt)
