@@ -3,62 +3,82 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.os_manager import ChromeType
+
 from app_config.logger import get_logger
 
 logger = get_logger(__name__)
 
-# Thread‑local storage to keep one driver per thread
 _thread_local = threading.local()
-# We also keep a global registry so that we can shut every driver down cleanly at the end
 _driver_pool: list[webdriver.Chrome] = []
 
 
 def init_selenium(headless: bool = True) -> webdriver.Chrome:
-    """Create and configure a Chrome driver instance."""
+    """
+    Initializes and returns a Selenium Chrome WebDriver instance with configurable headless mode.
+    Args:
+        headless (bool, optional): If True, runs Chrome in headless mode with additional options for efficiency and reduced resource usage. Defaults to True.
+    Returns:
+        webdriver.Chrome: An instance of Chrome WebDriver configured with the specified options.
+    """
+
     options = Options()
     if headless:
-        options.add_argument("--headless") # Run Chrome in headless mode
-        options.add_argument("--no-sandbox") 
+        options.add_argument("--headless")  # Run Chrome in headless mode
+        options.add_argument("--no-sandbox")
         options.add_argument("--disable-gpu")
+        options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--enable-unsafe-swiftshader")
 
-        options.add_argument("--ignore-certificate-errors")
-        options.add_argument("--ignore-ssl-errors=yes")
-        options.add_argument("--allow-insecure-localhost")
-
-        options.add_argument("--memory-pressure-off") # Disable memory pressure events
-        options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
-
-    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.198 Safari/537.36")
+        # options to disable features for headless mode and efficiency
+        options.add_argument("--memory-pressure-off")
+        options.add_argument("--blink-settings=imagesEnabled=false")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-infobars")
+        options.add_argument("--disable-notifications")
+        options.add_argument("--disable-logging")
+        options.add_argument("--mute-audio")
 
     driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
+        service=Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()),
         options=options,
     )
+
     return driver
 
 
-def get_driver(headless: bool = True) -> webdriver.Chrome:
-    """Return *one* persistent driver per worker thread.
-
-    The first time a thread calls this function we create a driver and store it in
-    thread-local storage. Subsequent calls from the same thread return the same
-    instance, so the browser is kept open for the entire lifetime of that worker.
+def is_driver_alive(driver: webdriver.Chrome) -> bool:
     """
+    Check if the given Selenium WebDriver instance is still alive and connected.
+    Args:
+        driver (webdriver.Chrome): The Selenium WebDriver instance to check.
+    Returns:
+        bool: True if the driver is alive and has a valid session, False otherwise.
+    """
+
+    try:
+        return driver.service.is_connectable() and driver.session_id is not None
+    except Exception:
+        return False
+
+
+def get_driver(headless: bool = True) -> webdriver.Chrome:
+    """
+    Returns a thread-local instance of a Selenium Chrome WebDriver.
+    If a driver does not exist for the current thread or the existing driver is not alive,
+
+    a new driver is initialized (optionally in headless mode), stored in thread-local storage,
+    and added to the global driver pool.
+    Args:
+        headless (bool, optional): Whether to run Chrome in headless mode. Defaults to True.
+    Returns:
+        webdriver.Chrome: A Selenium Chrome WebDriver instance for the current thread.
+    """
+
     driver = getattr(_thread_local, "driver", None)
-    if driver is None:
+
+    if driver is None or not is_driver_alive(driver):
         driver = init_selenium(headless=headless)
         _thread_local.driver = driver
         _driver_pool.append(driver)
     return driver
-
-
-def close_all_drivers() -> None:
-    """Quit every ChromeDriver we started (called once when all work is done)."""
-    for d in _driver_pool:
-        try:
-            d.quit()
-        except Exception:
-            # We do not want a single failure here to mask others
-            logger.exception("Error while quitting driver")
-    _driver_pool.clear()

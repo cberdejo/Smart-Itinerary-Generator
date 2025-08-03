@@ -4,7 +4,7 @@ import threading
 import time
 import re
 
-from helpers.selenium import close_all_drivers, get_driver
+from helpers.selenium import get_driver
 from unidecode import unidecode
 
 from tenacity import (
@@ -25,6 +25,7 @@ from selenium.common.exceptions import (
 
 from prefect import task
 from tqdm import tqdm
+from multiprocessing import cpu_count
 
 from app_config.logger import get_logger
 
@@ -170,6 +171,9 @@ def extract_images(driver: WebDriver) -> list[str]:
     return images
 
 
+#######################################################################################
+# ─────────────────────────────── Scraping Url ────────────────────────────────────
+#######################################################################################
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_exponential(multiplier=1, min=2, max=10),
@@ -179,11 +183,6 @@ def extract_images(driver: WebDriver) -> list[str]:
         f"(attempt {retry_state.attempt_number})"
     ),
 )
-
-#######################################################################################
-# ─────────────────────────────── Scraping Url ────────────────────────────────────
-#######################################################################################
-
 def scrap_tourism_url(
     driver: WebDriver,
     url: str,
@@ -202,6 +201,7 @@ def scrap_tourism_url(
     Returns:
         dict: Extracted tourism information.
     """
+
     try:
         if respect_crawl_delay:
             ensure_crawl_delay()
@@ -234,7 +234,6 @@ def scrap_tourism_url(
         description = get_paragraphs_before_section_h2(driver, "Historia")
         history = get_paragraphs_after_section_h2(driver, "Historia")
         images = extract_images(driver)
-
         if verbose:
             logger.info(f"Description: {description[:60]}...")
             logger.info(f"History: {history[:60]}...")
@@ -245,6 +244,7 @@ def scrap_tourism_url(
             "history": history,
             "images": images,
         }
+
     except Exception as e:
         logger.error(f"Error scraping {url}: {e}")
         raise
@@ -310,6 +310,7 @@ def process_batch(
             continue
 
         url = f"{base_url}{normalize_name(name)}"
+
         try:
             scraped = scrap_tourism_url(
                 driver, url, respect_crawl_delay=respect_crawl_delay
@@ -320,6 +321,9 @@ def process_batch(
                 else {"description": None, "history": None, "images": []}
             )
         except Exception as e:
+            with open("failed_pages.log", "a") as f:
+                f.write(url + "\n")
+
             logger.error("Batch %s - error scraping %s: %s", batch_num, url, e)
             town.update({"description": None, "history": None, "images": []})
 
@@ -342,7 +346,7 @@ def process_batch(
 def get_towns_info_from_turismo_andalucia(
     towns: list[dict],
     respect_crawl_delay: bool = False,
-    max_workers: int = 4,
+    max_workers: int = min(8, cpu_count() * 2),
     batch_size: int = 50,
 ) -> list[dict]:
     """
@@ -356,14 +360,18 @@ def get_towns_info_from_turismo_andalucia(
             between requests. Defaults to False.
         max_workers (int, optional): Maximum number of concurrent workers.
             Defaults to 4.
-        batch_size (int, optional): Number of towns to process in each batch.
+        batch_size (int, optional): Number of towns to process in  each batch.
             Defaults to 100.
     Returns:
         list[dict]: List of enriched towns with tourism data.
     """
 
     batches = [towns[i : i + batch_size] for i in range(0, len(towns), batch_size)]
+    # limited_batches = batches[:1]
+
     total_batches = len(batches)
+    if respect_crawl_delay:
+        max_workers = 1
 
     logger.info(
         "Processing %d towns in %d batches of %d (max workers =%d)",
@@ -375,46 +383,42 @@ def get_towns_info_from_turismo_andalucia(
 
     all_enriched: list[dict] = []
 
-    try:
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future_to_id = {
-                executor.submit(
-                    process_batch,
-                    batch,
-                    i + 1,
-                    respect_crawl_delay=respect_crawl_delay,
-                ): i + 1
-                for i, batch in enumerate(batches)
-            }
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_id = {
+            executor.submit(
+                process_batch,
+                batch,
+                i + 1,
+                respect_crawl_delay=respect_crawl_delay,
+            ): i + 1
+            for i, batch in enumerate(batches)
+        }
 
-            for future in tqdm(
-                as_completed(future_to_id),
-                total=len(future_to_id),
-                desc="Batches",
-            ):
-                batch_id = future_to_id[future]
-                try:
-                    result = future.result()
-                except Exception as exc:
-                    logger.exception(
-                        "Unhandled error in batch %s, marking towns as failed: %s",
-                        batch_id,
-                        exc,
-                    )
-                    # Fallback – preserve order
-                    result = [
-                        {
-                            **town,
-                            "description": None,
-                            "history": None,
-                            "images": [],
-                        }
-                        for town in batches[batch_id - 1]
-                    ]
-                all_enriched.extend(result)
-
-    finally:
-        close_all_drivers()
+        for future in tqdm(
+            as_completed(future_to_id),
+            total=len(future_to_id),
+            desc="Batches",
+        ):
+            batch_id = future_to_id[future]
+            try:
+                result = future.result()
+            except Exception as exc:
+                logger.exception(
+                    "Unhandled error in batch %s, marking towns as failed: %s",
+                    batch_id,
+                    exc,
+                )
+                # Fallback – preserve order
+                result = [
+                    {
+                        **town,
+                        "description": None,
+                        "history": None,
+                        "images": [],
+                    }
+                    for town in batches[batch_id - 1]
+                ]
+            all_enriched.extend(result)
 
     logger.info("Completed processing %d towns", len(all_enriched))
     return all_enriched
