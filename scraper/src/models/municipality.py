@@ -1,17 +1,37 @@
 from pydantic import BaseModel
 
 
+class RealEstateTypology(BaseModel):
+    den_tipologia: str
+    den_etnia: str | None = None
+    periodos: str | None = None
+    denom_acti: str | None = None
+
+    def __str__(self):
+        return f"""
+        {self.den_tipologia} 
+        {f"Etnia: {self.den_etnia}" if self.den_etnia else ""} 
+        {f"Periodo: {self.periodos}" if self.periodos else ""}
+        {f" Actividad: {self.denom_acti}" if self.denom_acti else ""}
+    """
+
+
 class RealEstateAsset(BaseModel):
     name: str
     municipality_name: str
     description: str | None
-    typologies: list[dict]
+    typologies: list[RealEstateTypology]
     characterization: str | None
 
     def __str__(self):
         desc = self.description or "sin descripción"
         types = (
-            ", ".join([t.get("type", "tipo desconocido") for t in self.typologies])
+            ", ".join(
+                [
+                    t.den_tipologia if isinstance(t, RealEstateTypology) else str(t)
+                    for t in self.typologies
+                ]
+            )
             if self.typologies
             else "sin tipologías"
         )

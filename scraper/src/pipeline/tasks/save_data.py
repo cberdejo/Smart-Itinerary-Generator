@@ -8,7 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app_config.logger import get_logger
 from helpers.postgres import get_engine, get_session
-from app_config.db_models import Towns, IntangibleAssets, RealEstateAssets, Images
+from app_config.db_models import Town, Intangible, RealEstate, Image
 from sqlmodel import SQLModel
 
 from prefect import task
@@ -36,31 +36,6 @@ def chunked(iterable: Iterable, size: int) -> Iterable[Sequence]:
         yield chunk
 
 
-def model_to_dict(model_instance) -> dict[str, object]:
-    """
-    Converts a SQLAlchemy model instance to a dictionary.
-
-    Args:
-        model_instance: SQLAlchemy model instance
-
-    Returns:
-        dict[str, object]: dictionary representation of the model
-    """
-    if hasattr(model_instance, "__dict__"):
-        # Remove SQLAlchemy internal attributes
-        return {
-            key: value
-            for key, value in model_instance.__dict__.items()
-            if not key.startswith("_")
-        }
-    elif hasattr(model_instance, "dict"):
-        # Pydantic model
-        return model_instance.dict()
-    else:
-        # Assume it's already a dict
-        return model_instance
-
-
 def build_upsert_stmt(
     model: type[SQLModel], rows: list[dict | SQLModel], conflict_cols: list[str]
 ):
@@ -81,7 +56,7 @@ def build_upsert_stmt(
         if isinstance(row, dict):
             dict_rows.append(row)
         else:
-            dict_rows.append(model_to_dict(row))
+            dict_rows.append(row.model_dump())
 
     stmt = pg_insert(model).values(dict_rows)
 
@@ -128,10 +103,10 @@ def deduplicate_records(records: list[object], key_func) -> list[object]:
 # ──────────────────────────────────────────────────────────────────────────────
 @task
 def load_info_to_postgres(
-    new_towns: list[Towns],
-    new_intangible_assets: list[IntangibleAssets],
-    new_real_estate_assets: list[RealEstateAssets],
-    new_images: list[Images],
+    new_towns: list[Town],
+    new_intangible_assets: list[Intangible],
+    new_real_estate_assets: list[RealEstate],
+    new_images: list[Image],
     batch_size: int = 1_000,
 ) -> int:
     """
@@ -189,7 +164,7 @@ def load_info_to_postgres(
             towns_processed = 0
             for chunk in chunked(deduplicated_towns, batch_size):
                 stmt = build_upsert_stmt(
-                    Towns, chunk, conflict_cols=["municipality_ine"]
+                    Town, chunk, conflict_cols=["municipality_ine"]
                 )
                 result = session.execute(stmt)
                 towns_processed += len(chunk)
@@ -218,7 +193,7 @@ def load_info_to_postgres(
             intangible_processed = 0
             for chunk in chunked(deduplicated_intangible, batch_size):
                 stmt = build_upsert_stmt(
-                    IntangibleAssets, chunk, conflict_cols=["municipality_ine", "name"]
+                    Intangible, chunk, conflict_cols=["municipality_ine", "name"]
                 )
                 result = session.execute(stmt)
                 intangible_processed += len(chunk)
@@ -251,7 +226,7 @@ def load_info_to_postgres(
             real_estate_processed = 0
             for chunk in chunked(deduplicated_real_estate, batch_size):
                 stmt = build_upsert_stmt(
-                    RealEstateAssets, chunk, conflict_cols=["municipality_ine", "name"]
+                    RealEstate, chunk, conflict_cols=["municipality_ine", "name"]
                 )
                 result = session.execute(stmt)
                 real_estate_processed += len(chunk)
@@ -269,7 +244,7 @@ def load_info_to_postgres(
             logger.info(f"Processing {len(new_images)} images...")
 
             stmt = build_upsert_stmt(
-                Images, new_images, conflict_cols=["municipality_ine", "url"]
+                Image, new_images, conflict_cols=["municipality_ine", "url"]
             )
 
             result = session.execute(stmt)

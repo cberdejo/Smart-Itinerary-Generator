@@ -2,7 +2,7 @@ from typing import List
 from tqdm import tqdm
 from prefect import task
 
-from app_config.db_models import Towns, IntangibleAssets, RealEstateAssets, Images
+from app_config.db_models import Town, Intangible, RealEstate, Image
 from models.municipality import MunicipalityInfo
 from app_config.logger import get_logger
 from app_helpers.embedder import get_embedding
@@ -13,7 +13,7 @@ logger = get_logger("generate_embeddings")
 @task
 def generate_embeddings(
     municipalities: List[MunicipalityInfo],
-) -> tuple[List[Towns], List[IntangibleAssets], List[RealEstateAssets], List[Images]]:
+) -> tuple[List[Town], List[Intangible], List[RealEstate], List[Image]]:
     """
     Generate embeddings for a list of municipalities and create corresponding database objects.
     This function processes a list of MunicipalityInfo objects, generates embeddings using
@@ -35,10 +35,10 @@ def generate_embeddings(
 
     BATCH_SIZE = 32
 
-    towns: List[Towns] = []
-    intangible_assets: List[IntangibleAssets] = []
-    real_estate_assets: List[RealEstateAssets] = []
-    images: List[Images] = []
+    towns: List[Town] = []
+    intangible_assets: List[Intangible] = []
+    real_estate_assets: List[RealEstate] = []
+    images: List[Image] = []
 
     total_items = len(municipalities)
 
@@ -59,14 +59,14 @@ def generate_embeddings(
             ):
                 try:
                     # ----- Town --------------------------------------------------
-                    town = Towns(
-                        municipality_ine=municipality.ine,
+                    town = Town(
+                        municipality_ine=str(municipality.ine),
                         municipality_name=municipality.name,
                         capital_city=municipality.capital,
                         latitude=municipality.latitude,
                         longitude=municipality.longitude,
-                        province_identifier=getattr(
-                            municipality, "province_identifier", None
+                        province_identifier=str(
+                            getattr(municipality, "province_identifier", None)
                         ),
                         description=municipality.description,
                         history=municipality.history,
@@ -80,8 +80,8 @@ def generate_embeddings(
                     if municipality.intangible_assets:
                         for asset in municipality.intangible_assets:
                             intangible_assets.append(
-                                IntangibleAssets(
-                                    municipality_ine=municipality.ine,
+                                Intangible(
+                                    municipality_ine=str(municipality.ine),
                                     name=asset.name,
                                     scope=asset.scope,
                                     typology=asset.typology,
@@ -94,11 +94,15 @@ def generate_embeddings(
                     if municipality.real_estate_assets:
                         for asset in municipality.real_estate_assets:
                             real_estate_assets.append(
-                                RealEstateAssets(
-                                    municipality_ine=municipality.ine,
+                                RealEstate(
+                                    municipality_ine=str(municipality.ine),
                                     name=asset.name,
                                     description=asset.description,
-                                    typologies=asset.typologies,
+                                    typologies=[
+                                        t.model_dump() for t in asset.typologies
+                                    ]
+                                    if asset.typologies
+                                    else [],
                                     characterization=asset.characterization,
                                 )
                             )
@@ -107,8 +111,8 @@ def generate_embeddings(
                     if municipality.images:
                         for url in municipality.images:
                             images.append(
-                                Images(
-                                    municipality_ine=municipality.ine,
+                                Image(
+                                    municipality_ine=str(municipality.ine),
                                     url=url,
                                 )
                             )

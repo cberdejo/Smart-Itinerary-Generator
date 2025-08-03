@@ -3,7 +3,7 @@ from sqlalchemy import ARRAY, Double, JSON
 from pydantic import BaseModel
 
 
-class Towns(SQLModel, table=True):
+class Town(SQLModel, table=True):
     __tablename__ = "towns"
 
     municipality_ine: str = Field(primary_key=True)
@@ -18,12 +18,12 @@ class Towns(SQLModel, table=True):
     has_beach: bool | None = None
     embeddings: list | None = Field(default=None, sa_type=ARRAY(Double(precision=53)))
 
-    images: list["Images"] = Relationship(back_populates="towns")
-    intangible_assets: list["IntangibleAssets"] = Relationship(back_populates="towns")
-    real_estate_assets: list["RealEstateAssets"] = Relationship(back_populates="towns")
+    images: list["Image"] = Relationship(back_populates="towns")
+    intangible_assets: list["Intangible"] = Relationship(back_populates="towns")
+    real_estate_assets: list["RealEstate"] = Relationship(back_populates="towns")
 
 
-class Images(SQLModel, table=True):
+class Image(SQLModel, table=True):
     __tablename__ = "images"
 
     url: str = Field(primary_key=True)
@@ -31,10 +31,10 @@ class Images(SQLModel, table=True):
         primary_key=True, foreign_key="towns.municipality_ine"
     )
 
-    towns: "Towns" = Relationship(back_populates="images")
+    towns: "Town" = Relationship(back_populates="images")
 
 
-class IntangibleAssets(SQLModel, table=True):
+class Intangible(SQLModel, table=True):
     __tablename__ = "intangible_assets"
 
     municipality_ine: str = Field(
@@ -46,15 +46,10 @@ class IntangibleAssets(SQLModel, table=True):
     description: str | None = None
     date: str | None = None
 
-    towns: "Towns" = Relationship(back_populates="intangible_assets")
+    towns: "Town" = Relationship(back_populates="intangible_assets")
 
 
-class RealEstateTypology(BaseModel):
-    den_tipologia: str
-    den_etnia: str | None = None
-
-
-class RealEstateAssets(SQLModel, table=True):
+class RealEstate(SQLModel, table=True):
     __tablename__ = "real_estate_assets"
 
     municipality_ine: str = Field(
@@ -62,7 +57,6 @@ class RealEstateAssets(SQLModel, table=True):
     )
     name: str = Field(primary_key=True)
     description: str | None = None
-    typologies: list[RealEstateTypology] | None = Field(default=None, sa_type=JSON)
+    typologies: list[dict] | None = Field(default=None, sa_type=JSON)
     characterization: str | None = None
-
-    towns: "Towns" = Relationship(back_populates="real_estate_assets")
+    towns: "Town" = Relationship(back_populates="real_estate_assets")

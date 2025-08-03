@@ -1,6 +1,5 @@
-from models.municipality import IntangibleAsset, RealEstateAsset
+from models.municipality import IntangibleAsset, RealEstateAsset, RealEstateTypology
 from app_config.logger import get_logger
-
 import asyncio
 import httpx
 import json
@@ -27,7 +26,8 @@ def trim_inmueble(bien: dict) -> RealEstateAsset:
         - "tipologiaList": Extracts typologies, including their names, periods, and ethnicities.
     Notes:
         - If "tipologia" under "tipologiaList" is a dictionary, it is converted into a list.
-        - Each typology is structured into a dictionary with keys "den_tipologia", "periodos", and "den_etnia".
+        - Each typology is structured into a dictionary with keys "den_tipologia", "periodos",  "den_etnia" and "denom_acti".
+        - "den_tipologia is mandatory in the tipology dictionary."
     """
 
     identifica = bien.get("identifica", {})
@@ -35,25 +35,28 @@ def trim_inmueble(bien: dict) -> RealEstateAsset:
     tipologia_list = bien.get("tipologiaList", {})
     tipologia = tipologia_list.get("tipologia", [])
 
-    if isinstance(tipologia, dict):
+    if isinstance(
+        tipologia, dict
+    ):  # Some assets have directly the tipologia not the list
         tipologia = [tipologia]
 
-    tipologias = []
+    final_tipologia_list: list[RealEstateTypology] = []
     for t in tipologia:
-        if isinstance(t, dict):
-            tipologias.append(
-                {
-                    "den_tipologia": t.get("den_tipologia", ""),
-                    "periodos": t.get("periodos", ""),
-                    "den_etnia": t.get("den_etnia", ""),
-                }
+        if isinstance(t, dict) and t.get("den_tipologia"):
+            final_tipologia_list.append(
+                RealEstateTypology(
+                    den_tipologia=str(t.get("den_tipologia", "")),
+                    periodos=str(t.get("periodos", "")),
+                    den_etnia=str(t.get("den_etnia", "")),
+                    denom_acti=str(t.get("denom_acti", "")),
+                )
             )
 
     return RealEstateAsset(
         name=identifica.get("denominacion", ""),
         description=clob.get("descripcion", ""),
         municipality_name=identifica.get("municipio"),
-        typologies=tipologias,
+        typologies=final_tipologia_list,
         characterization=identifica.get("caracterizacion", ""),
     )
 
@@ -127,17 +130,31 @@ async def fetch_single_bien_async(
             return response.json()
 
         except httpx.HTTPStatusError as e:
-            if response.status_code == 503 and attempt < retries - 1:
-                wait_time = 2**attempt
-                logger.warning(
-                    f"503 received for {type_} ID {id_}, attempt {attempt + 1}/{retries}, retrying in {wait_time}s..."
+            if e.response.status_code in (404, 500):
+                logger.warning(f"Empty response for {id_} ({e.response.status_code})")
+                return None
+            elif e.response.status_code == 503 and attempt < retries - 1:
+                # Continue to retry logic below
+                pass
+            else:
+                logger.error(
+                    f"HTTP error fetching {type_} ID {id_}: {e} (status: {e.response.status_code})"
                 )
-                await asyncio.sleep(wait_time)
-                continue
-            logger.error(
-                f"HTTP error fetching {type_} ID {id_}: {e} (status: {response.status_code})"
-            )
-            return None
+                return None
+
+        except (httpx.TimeoutException, httpx.RequestError) as e:
+            if attempt < retries - 1:
+                # Continue to retry logic below
+                pass
+            else:
+                error_type = (
+                    "Timeout"
+                    if isinstance(e, httpx.TimeoutException)
+                    else "Connection error"
+                )
+                logger.error(f"{error_type} fetching {type_} ID {id_}: {str(e)}")
+                return None
+
         except json.JSONDecodeError as e:
             logger.error(f"JSON decode error for {type_} ID {id_}: {e}")
             return None
@@ -145,45 +162,125 @@ async def fetch_single_bien_async(
             logger.error(f"Unexpected error fetching {type_} ID {id_}: {e}")
             return None
 
+        # Retry logic (only reached for retryable errors)
+        if attempt < retries - 1:
+            wait_time = 2**attempt
+            error_msg = (
+                "503 received"
+                if "e" in locals()
+                and hasattr(e, "response")
+                and e.response.status_code == 503
+                else "Error occurred"
+            )
+            logger.warning(
+                f"{error_msg} for {type_} ID {id_}, attempt {attempt + 1}/{retries}, retrying in {wait_time}s..."
+            )
+            await asyncio.sleep(wait_time)
 
-async def get_full_bienes_data_async(
-    type_: str, max_concurrent_requests: int = 10
-) -> list:
-    assert type_ in ("inmueble", "inmaterial"), (
-        f"Invalid type: {type_}. Must be 'inmueble' or 'inmaterial'"
-    )
+    return None
+
+
+def build_minimal_inmueble(entry: dict) -> dict:
+    """
+    Creates a stub with the bare minimum so that `trim_inmueble`
+    doesn't crash when the detailed file doesn't exist.
+
+    Args:
+        entry (dict): Asset entry from the base list.
+
+    Returns:
+        dict: Stub for the asset.
+    """
+    logger.info("building stub for %s", entry["id"])
+    return {
+        "identifica": {
+            "denominacion": entry.get("denominacion"),
+            "municipio": entry.get("municipio"),
+            "caracterizacion": entry.get("caracterizacion"),
+        },
+        "clob": {"descripcion": ""},
+        "tipologiaList": {"tipologia": []},
+    }
+
+
+def build_minimal_inmaterial(entry: dict) -> dict:
+    """
+    Stub for intangible assets.  *ambito* and *fechasact* are not
+    present in the base list, so we leave them empty.
+
+    Args:
+        entry (dict): Asset entry from the base list.
+
+    Returns:
+        dict: Stub for the asset.
+    """
+    return {
+        "identifica": {
+            "denominacion": entry.get("denominacion"),
+            "municipio": entry.get("municipio"),
+            "ambito": "",
+            "fechasact": "",
+        },
+        "clob": {"descripcion": ""},
+        "tipologiaList": {"tipologia": []},
+    }
+
+
+_build_stub: dict[str, Callable[[dict], dict]] = {
+    "inmueble": build_minimal_inmueble,
+    "inmaterial": build_minimal_inmaterial,
+}
+
+
+async def get_full_assets_data_async(
+    type_: str, max_concurrent_requests: int = 20
+) -> list[dict]:
+    """
+    Downloads detailed information for all assets of a given type from the IAPH dataset.
+    1. The base list of assets is first downloaded from the IAPH dataset.
+    2. For each asset in the base list, a detail request is made to the IAPH dataset.
+    3. If the detail request fails, a minimal stub is returned instead.
+
+    Args:
+        type_ (str): Type of asset ("inmueble" or "inmaterial").
+        max_concurrent_requests (int, optional): Maximum number of concurrent requests.
+            Defaults to 20.
+
+    Returns:
+        list[dict]: List of dictionaries, each containing the detailed information
+            for an asset of the given type.
+
+    Raises:
+        AssertionError: If `type_` is not one of "inmueble" or "inmaterial".
+
+    """
+    assert type_ in ("inmueble", "inmaterial")
 
     base_url = (
         f"https://juntadeandalucia.es/datosabiertos/portal/iaph/dataset/bien/{type_}"
     )
 
-    try:
-        async with httpx.AsyncClient(
-            timeout=30.0, headers=headers, verify=False, follow_redirects=True
-        ) as client:
-            r = await client.get(base_url)
-            r.raise_for_status()
-            raw_data = r.json()
+    async with httpx.AsyncClient(
+        timeout=30, headers=headers, follow_redirects=True
+    ) as client:
+        r = await client.get(base_url)
+        r.raise_for_status()
+        raw_data = r.json()
 
-            bienes = raw_data.get("inmueble" if type_ == "inmueble" else "bien", [])
-            ids = [bien["id"] for bien in bienes if "id" in bien]
+        bienes_base = raw_data["inmueble" if type_ == "inmueble" else "bien"]
 
-            sem = asyncio.Semaphore(max_concurrent_requests)
+        sem = asyncio.Semaphore(max_concurrent_requests)
+        build_stub = _build_stub[type_]
 
-            async def limited_fetch(id_):
-                async with sem:
-                    return await fetch_single_bien_async(client, type_, id_)
+        async def limited_fetch(entry: dict) -> dict:
+            async with sem:
+                detail = await fetch_single_bien_async(client, type_, entry["id"])
+                return detail or build_stub(entry)
 
-            tasks = [limited_fetch(id_) for id_ in ids]
-            results = await tqdm_asyncio.gather(
-                *tasks, desc=f"Downloading {type_}s", unit="bien"
-            )
-
-            return [res for res in results if res is not None]
-
-    except Exception as e:
-        logger.error(f"Error downloading base list of {type_}s: {e}")
-        return []
+        tasks = [limited_fetch(entry) for entry in bienes_base]
+        return await tqdm_asyncio.gather(
+            *tasks, desc=f"Descargando {type_}s", unit="bien"
+        )
 
 
 def safe_map_trim(trim_func: Callable, bienes: list) -> list:
@@ -221,7 +318,7 @@ async def get_info_from_iaph() -> dict[str, pl.DataFrame]:
     """
 
     real_estate_assets_raw, intangible_assets_raw = await asyncio.gather(
-        get_full_bienes_data_async("inmueble"), get_full_bienes_data_async("inmaterial")
+        get_full_assets_data_async("inmueble"), get_full_assets_data_async("inmaterial")
     )
 
     return {
