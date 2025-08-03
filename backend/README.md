@@ -60,11 +60,8 @@ PORT=8000
 VALHALLA_URL=http://valhalla:8002
 
 # PostgreSQL database credentials
-POSTGRES_DB=your_database
-POSTGRES_USER=your_user
-POSTGRES_PASSWORD=your_password
-POSTGRES_HOST=your_db_host
-POSTGRES_PORT=5432
+PGURI=postgresql+psycopg2://your_user:your_password@your_host:5432/your_database
+
 ```
 
 

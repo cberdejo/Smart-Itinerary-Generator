@@ -65,9 +65,9 @@ def generate_embeddings(
                         capital_city=municipality.capital,
                         latitude=municipality.latitude,
                         longitude=municipality.longitude,
-                        province_identifier=str(
-                            getattr(municipality, "province_identifier", None)
-                        ),
+                        province_identifier=str(getattr(
+                            municipality, "province_identifier", None
+                        )),
                         description=municipality.description,
                         history=municipality.history,
                         province_name=getattr(municipality, "province_name", None),

@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # --- UV INSTALLER
 FROM base AS uv-installer
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-RUN uv --version
 
 # --- BUILDER------------
 FROM uv-installer AS builder

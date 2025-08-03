@@ -1,31 +1,21 @@
-import os
-from dotenv import load_dotenv
+from config.settings import settings
+from sqlmodel import SQLModel
 
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-
-load_dotenv()
-
-
-def get_async_engine():
-    """
-    Creates and returns an asynchronous SQLAlchemy engine for connecting to a PostgreSQL database.
-    """
-
-    user = os.getenv("POSTGRES_USER", "postgres")
-    password = os.getenv("POSTGRES_PASSWORD", "mysecretpassword")
-    host = os.getenv("POSTGRES_HOST", "localhost")
-    port = os.getenv("POSTGRES_PORT", "5432")
-    db = os.getenv("POSTGRES_DB", "postgres")
-
-    if not all([user, password, host, port, db]):
-        raise ValueError("Missing required database environment variables")
-
-    connection_string = f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db}"
-    return create_async_engine(connection_string, echo=True)
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
 
-def get_async_session(engine):
-    """
-    Creates and returns an asynchronous SQLAlchemy session factory bound to the provided engine.
-    """
-    return async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+async_engine = create_async_engine(settings.pguri, echo=True, future=True)
+async_session = sessionmaker(
+    bind=async_engine, class_=AsyncSession, expire_on_commit=False
+)
+
+
+async def create_db_and_tables():
+    async with async_engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+
+
+async def get_session() -> AsyncSession:
+    async with async_session() as session:
+        yield session

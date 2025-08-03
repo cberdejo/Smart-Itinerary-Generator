@@ -1,15 +1,12 @@
-import os
 import httpx
 from models.form_response import Coordinate
 from models.valhalla import Trip
 from shapely.geometry import Point, Polygon
-from db_models.town import Town
+from app_config.db_models import Town
 from app_config.logger import get_logger
-from dotenv import load_dotenv
+from config.settings import settings
 
-load_dotenv()
 logger = get_logger(__name__)
-VALHALLA_URL = os.getenv("VALHALLA_URL")
 
 
 async def filter_by_location_polygon(
@@ -33,11 +30,10 @@ async def filter_by_location_polygon(
         "contours": [{"time": minutes}],
         "polygons": True,
     }
-    global VALHALLA_URL
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                f"{VALHALLA_URL}/isochrone", json=payload, timeout=10
+                f"{settings.valhalla_url}/isochrone", json=payload, timeout=10
             )
             response.raise_for_status()
             polygon_coords = response.json()["features"][0]["geometry"]["coordinates"][
@@ -63,7 +59,7 @@ async def get_optimal_route(locations: list[Coordinate]) -> Trip:
     try:
         async with httpx.AsyncClient() as client:
             res = await client.post(
-                f"{VALHALLA_URL}/optimized_route", json=payload, timeout=10
+                f"{settings.valhalla_url}/optimized_route", json=payload, timeout=10
             )
             res.raise_for_status()
             trip_data = res.json().get("trip")
