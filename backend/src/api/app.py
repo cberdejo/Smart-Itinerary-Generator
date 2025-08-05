@@ -1,9 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from helpers.postgres import create_db_and_tables, get_session
+from helpers.postgres import create_db_and_tables
 from contextlib import asynccontextmanager
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import SQLModel
 from app_config.logger import get_logger
 from api.routes import router
 
@@ -25,7 +23,7 @@ async def lifespan(app: FastAPI):
 
     # Startup
     logger.info("Starting up...")
-    create_db_and_tables()
+    await create_db_and_tables()
     logger.info("Database tables created")
 
     yield

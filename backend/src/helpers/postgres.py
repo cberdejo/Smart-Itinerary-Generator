@@ -1,3 +1,4 @@
+from typing import AsyncGenerator
 from config.settings import settings
 from sqlmodel import SQLModel
 
@@ -16,6 +17,6 @@ async def create_db_and_tables():
         await conn.run_sync(SQLModel.metadata.create_all)
 
 
-async def get_session() -> AsyncSession:
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         yield session

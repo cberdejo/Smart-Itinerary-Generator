@@ -1,7 +1,7 @@
 import numpy as np
 from pydantic import ValidationError
 from sklearn.metrics.pairwise import cosine_similarity
-from sqlmodel import select, Session
+from sqlmodel import select
 from sqlalchemy.orm import selectinload
 
 from models.municiaplity import TownOut
@@ -74,9 +74,14 @@ async def get_itinerary(form_data: FormResponse, db_session) -> GenericResponse:
 
         # Optional: filter by Valhalla isochrone
         if form_data.location and form_data.travelTimeLimit:
-            towns = await filter_by_location_polygon(
-                form_data.location, form_data.travelTimeLimit, towns
-            )
+            try:
+                towns = await filter_by_location_polygon(
+                    form_data.location, form_data.travelTimeLimit, towns
+                )
+            except:
+                logger.warning(
+                    "Valhalla isochrone filtering failed, proceeding without location filtering"
+                )
 
         # Step 2: Rank towns using semantic similarity
         form_embedding = get_embedding(form_data.get_embedding_text())
