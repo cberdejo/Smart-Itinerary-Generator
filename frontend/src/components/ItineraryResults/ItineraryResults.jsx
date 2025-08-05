@@ -287,7 +287,7 @@ export default function ItineraryResults({ results, onReset }) {
                     )}
                     className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-1 rounded-full shadow-md transition-all duration-200 hover:scale-110"
                   >
-                    <ChevronLeft className="w-4 h-4 "  />
+                    <ChevronLeft className="w-4 h-4 " />
                   </button>
                   <button
                     onClick={() => setCurrentImageIndex(prev =>
@@ -341,7 +341,7 @@ export default function ItineraryResults({ results, onReset }) {
             {/* Description */}
             {selectedTown.description && (
               <div className="mb-6">
-                 <h4 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <h4 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   Descripción
                 </h4>
@@ -402,8 +402,46 @@ export default function ItineraryResults({ results, onReset }) {
                         {asset.description && <p><strong>Descripción:</strong> {asset.description}</p>}
                         {asset.characterization && <p><strong>Caracterización:</strong> {asset.characterization}</p>}
                         {asset.typologies?.length > 0 && (
-                          <p><strong>Tipologías:</strong> {asset.typologies.map(t => t.den_tipologia).join(', ')}</p>
+                          <>
+                            {asset.typologies.some(t => t.den_tipologia && t.den_tipologia !== 'None') && (
+                              <p>
+                                <strong>Tipologías:</strong>{' '}
+                                {asset.typologies
+                                  .map(t => t.den_tipologia)
+                                  .filter(t => t && t !== 'None')
+                                  .join(', ')}
+                              </p>
+                            )}
+                            {asset.typologies.some(t => t.den_etnia && t.den_etnia !== 'None') && (
+                              <p>
+                                <strong>Etnias:</strong>{' '}
+                                {asset.typologies
+                                  .map(t => t.den_etnia)
+                                  .filter(t => t && t !== 'None')
+                                  .join(', ')}
+                              </p>
+                            )}
+                            {asset.typologies.some(t => t.periodos && t.periodos !== 'None') && (
+                              <p>
+                                <strong>Períodos:</strong>{' '}
+                                {asset.typologies
+                                  .map(t => t.periodos)
+                                  .filter(t => t && t !== 'None')
+                                  .join(', ')}
+                              </p>
+                            )}
+                            {asset.typologies.some(t => t.denom_acti && t.denom_acti !== 'None') && (
+                              <p>
+                                <strong>Actividad:</strong>{' '}
+                                {asset.typologies
+                                  .map(t => t.denom_acti)
+                                  .filter(t => t && t !== 'None')
+                                  .join(', ')}
+                              </p>
+                            )}
+                          </>
                         )}
+
                       </>
                     }
                   />
