@@ -1,14 +1,13 @@
 from pydantic import BaseModel
-from typing import List, Optional, Any
 
 
 class ExitTowardElement(BaseModel):
     text: str
-    consecutive_count: Optional[int] = None
+    consecutive_count: int | None = None
 
 
 class Sign(BaseModel):
-    exit_toward_elements: Optional[List[ExitTowardElement]] = None
+    exit_toward_elements: list[ExitTowardElement] | None = None
 
 
 class Maneuver(BaseModel):
@@ -22,15 +21,15 @@ class Maneuver(BaseModel):
     travel_mode: str
     travel_type: str
 
-    verbal_succinct_transition_instruction: Optional[str] = None
-    verbal_pre_transition_instruction: Optional[str] = None
-    verbal_post_transition_instruction: Optional[str] = None
-    verbal_transition_alert_instruction: Optional[str] = None
-    street_names: Optional[List[str]] = None
-    bearing_before: Optional[float] = None
-    bearing_after: Optional[float] = None
-    sign: Optional[Sign] = None
-    verbal_multi_cue: Optional[bool] = None
+    verbal_succinct_transition_instruction: str | None = None
+    verbal_pre_transition_instruction: str | None = None
+    verbal_post_transition_instruction: str | None = None
+    verbal_transition_alert_instruction: str | None = None
+    street_names: list[str] | None = None
+    bearing_before: float | None = None
+    bearing_after: float | None = None
+    sign: Sign | None = None
+    verbal_multi_cue: bool | None = None
 
 
 class Summary(BaseModel):
@@ -48,7 +47,7 @@ class Summary(BaseModel):
 
 
 class Leg(BaseModel):
-    maneuvers: List[Maneuver]
+    maneuvers: list[Maneuver]
     summary: Summary
     shape: str
 
@@ -58,12 +57,12 @@ class TripLocation(BaseModel):
     lat: float
     lon: float
     original_index: int
-    side_of_street: Optional[str] = None
+    side_of_street: str | None = None
 
 
 class Trip(BaseModel):
-    locations: List[TripLocation]
-    legs: List[Leg]
+    locations: list[TripLocation]
+    legs: list[Leg]
     summary: Summary
     status_message: str
     status: int

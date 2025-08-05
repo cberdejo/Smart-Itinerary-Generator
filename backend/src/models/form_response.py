@@ -1,5 +1,5 @@
-from typing import Optional, Literal
-from pydantic import BaseModel, field_validator, model_validator
+from typing import Literal
+from pydantic import BaseModel, field_validator
 
 
 class Coordinate(BaseModel):
@@ -8,20 +8,20 @@ class Coordinate(BaseModel):
 
 
 class Location(Coordinate):
-    label: Optional[str]
+    label: str | None
 
 
 class FormResponse(BaseModel):
     beach: Literal["yes", "no", "indiference"]
-    location: Optional[Location]
-    travelTimeLimit: Optional[int]
-    culturalInfluences: Optional[str]
-    environment: Optional[str]
-    historicalPeriods: Optional[str]
-    monuments: Optional[str]
-    traditions: Optional[str]
-    travelInterests: Optional[str]
-    villageType: Optional[str]
+    location: Location | None
+    travelTimeLimit: int | None
+    culturalInfluences: str | None
+    environment: str | None
+    historicalPeriods: str | None
+    monuments: str | None
+    traditions: str | None
+    travelInterests: str | None
+    villageType: str | None
 
     @field_validator("*", mode="before")
     @classmethod
