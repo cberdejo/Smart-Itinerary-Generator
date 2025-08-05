@@ -1,5 +1,5 @@
 from typing import AsyncGenerator
-from config.settings import settings
+from app.config.settings import settings
 from sqlmodel import SQLModel
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -21,8 +21,7 @@ async def init_db() -> None:
     Returns:
         None
     """
-    
-    
+
     async with async_engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 

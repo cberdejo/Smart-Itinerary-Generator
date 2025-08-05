@@ -4,11 +4,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sqlmodel import select
 from sqlalchemy.orm import selectinload
 
-from models.municiaplity import TownOut
-from models.generic_response import GenericResponse
-from models.itinerary import Itinerary
-from models.form_response import FormResponse, Coordinate
-from helpers.valhalla import filter_by_location_polygon, get_optimal_route
+from app.models.municiaplity import TownOut
+from app.models.generic_response import GenericResponse
+from app.models.itinerary import Itinerary
+from app.models.form_response import FormResponse, Coordinate
+from app.helpers.valhalla import filter_by_location_polygon, get_optimal_route
 
 from app_config.logger import get_logger
 from app_config.db_models import Town

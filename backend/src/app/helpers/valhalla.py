@@ -1,10 +1,10 @@
 import httpx
-from models.form_response import Coordinate
-from models.valhalla import Trip
 from shapely.geometry import Point, Polygon
 from app_config.db_models import Town
 from app_config.logger import get_logger
-from config.settings import settings
+from app.config.settings import settings
+from app.models.form_response import Coordinate
+from app.models.valhalla import Trip
 
 logger = get_logger(__name__)
 

@@ -1,5 +1,5 @@
 import uvicorn
-from config.settings import settings
+from app.config.settings import settings
 
 
 def main():
@@ -8,7 +8,7 @@ def main():
     """
 
     uvicorn.run(
-        "app:app",
+        "application:app",
         host=settings.host,
         port=settings.port,
         reload=True,

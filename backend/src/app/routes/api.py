@@ -5,6 +5,7 @@ This module sets up the primary FastAPI router, includes sub-routers for differe
 and provides utility endpoints such as health checks. All API routes should be registered here
 either directly or via sub-routers.
 """
+
 from typing import Annotated
 
 import httpx
@@ -13,13 +14,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import text
 
 from app_config.logger import get_logger
-from config.settings import settings
-from helpers.db import get_session
-from routes import itinerary
+from app.config.settings import settings
+from app.helpers.db import get_session
+from app.routes.itinerary import router as itineraryRouter
+
 logger = get_logger(__name__)
 
 router = APIRouter()
-
 
 
 @router.get("/health", summary="Health Check")
@@ -36,7 +37,6 @@ async def health_check(session: Annotated[AsyncSession, Depends(get_session)]):
     # Check database
     try:
         await session.execute(text("SELECT 1"))
-        await session.commit()
 
     except Exception as e:
         db_status = "disconnected"
@@ -68,4 +68,4 @@ async def health_check(session: Annotated[AsyncSession, Depends(get_session)]):
     }
 
 
-router.include_router(itinerary.router, prefix="/itinerary")
+router.include_router(itineraryRouter, prefix="/itinerary")
