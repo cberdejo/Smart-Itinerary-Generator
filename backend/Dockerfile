@@ -26,4 +26,4 @@ RUN uv venv .venv && \
 
 FROM builder AS production
 WORKDIR /app
-CMD ["uv", "run", "backend/src/api/main.py"]
+CMD ["uv", "run", "backend/src/app/main.py"]

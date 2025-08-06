@@ -1,30 +1,61 @@
-#Frontend
-node_modules
-# Ignore venvs
+
+# Node 
+
+node_modules/
+
+
+
+# Python Virtual Environments
+
 .venv/
 venv/
 env/
 
-# Ignore bytecode python
+
+# Python Bytecode and Cache
+
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
-__pycache__/
 
-# Ignorae package metadata
+
+# Package Metadata
+
+*.egg-info/
+*.egg
 **/build
 **/dist
 **/*.egg-info
 
+# Temp and Log Files
+*.log
+*.swp
+*.tmp
+*.bak
 
-
-# Ignorar system and editor
+# System and Editor Files
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
-*.log
 
-# Ignore temp files
-*.swp
-*.tmp
+# Data and Configuration Files
+*.db
+*.sqlite3
+*.env
+.env.*
+
+
+# Documentation and Tests
+*.ipynb
+README.md
+LICENSE
+docs/
+tests/
+test/
+
+# Project-Specific Folders
+
+screenshots/
+valhalla_files/

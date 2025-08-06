@@ -3,14 +3,16 @@ from pydantic import Field
 
 
 class BackendSettings(BaseSettings):
+    host: str = Field("0.0.0.0", description="Host address", alias="HOST")
+    port: int = Field(8000, description="Port number", alias="PORT")
     pguri: str = Field(..., description="Postgres URI", alias="PGURI")
-    host: str = Field(..., description="Host address", alias="HOST")
-    port: int = Field(..., description="Port number", alias="PORT")
-    valhalla_url: str = Field(
-        ..., description="Valhalla service URL", alias="VALHALLA_URL"
-    )
+    valhalla_url: str = Field(..., description="Valhalla service URL", alias="VALHALLA_URL")
 
-    model_config = {"env_file": ".env", "extra": "ignore"}
+    model_config = {
+        "env_file": ".env",
+        "extra": "ignore"
+    }
 
 
 settings = BackendSettings()
+ 

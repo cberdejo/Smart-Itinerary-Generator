@@ -2,17 +2,22 @@
 FROM python:3.12-slim AS base
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
     curl \
-    build-essential \
-    && apt-get purge -y build-essential \
-    && apt-get autoremove -y \
+    ca-certificates \
+    chromium \
+    libnss3 \
+    libgconf-2-4 \
+    libxss1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libgtk-3-0 \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
+    
 # --- UV INSTALLER
 FROM base AS uv-installer
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-RUN uv --version
+
 
 # --- BUILDER------------
 FROM uv-installer AS builder
