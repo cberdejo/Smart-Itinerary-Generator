@@ -100,13 +100,19 @@ async def get_itinerary(form_data: FormResponse, db_session) -> GenericResponse:
                 Coordinate(lat=town.latitude, lng=town.longitude) for town in top_towns
             ]
         else:
-            first = top_towns[0]
-
-            start_coord = Coordinate(lat=first.latitude, lng=first.longitude)
-            all_locations = [start_coord] + [
-                Coordinate(lat=town.latitude, lng=town.longitude)
-                for town in top_towns[1:]
+            all_locations = [
+                Coordinate(lat=town.latitude, lng=town.longitude) for town in top_towns
             ]
+
+        if len(all_locations) < 2:
+            logger.error("Not enough locations for optimal route")
+            response.data = Itinerary(
+                trip=None, towns=[TownOut.model_validate(town) for town in top_towns]
+            )
+            response.code = 204
+            response.message = "Not enough locations for optimal route"
+            return response.to_json_response()
+
         try:
             trip = await get_optimal_route(all_locations)
         except Exception as e:
@@ -115,7 +121,6 @@ async def get_itinerary(form_data: FormResponse, db_session) -> GenericResponse:
             response.message = "Error getting optimal route"
             return response.to_json_response()
 
-        # Final response
         response.code = 200
         response.message = "Itinerary generated successfully"
         response.data = Itinerary(
