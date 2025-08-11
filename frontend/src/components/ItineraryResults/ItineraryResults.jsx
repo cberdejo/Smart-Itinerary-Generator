@@ -31,90 +31,104 @@ export default function ItineraryResults({ results, onReset }) {
   const [showFullHistory, setShowFullHistory] = useState(false);
   const maxChars = 300;
 
-  useEffect(() => {
-    const map = mapRef.current;
 
-    if (!map) {
-      mapRef.current = L.map('map').setView([37.5443, -4.7278], 7);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(mapRef.current);
-    } else {
-      map.eachLayer(layer => {
-        if (layer instanceof L.Marker || layer instanceof L.Polyline) {
-          map.removeLayer(layer);
-        }
-      });
-    }
+useEffect(() => {
+  const map = mapRef.current;
 
-    const towns = results.towns;
-    const trip = results.trip;
-    const start = trip?.locations?.[0];
-
-    const startingPoint = start ? [start.lat, start.lon] : [37.5443, -4.7278];
-
-    if (start) {
-      L.marker(startingPoint, {
-        icon: L.icon({
-          iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-          iconSize: [30, 30],
-          iconAnchor: [15, 30],
-          popupAnchor: [0, -30],
-        }),
-        title: 'Punto de partida',
-      }).addTo(mapRef.current).bindTooltip('Punto de partida', {
-        direction: 'top',
-        className: 'custom-tooltip'
-      });
-    }
-
-    // add town markers
-    towns.forEach(town => {
-      const marker = L.marker([town.latitude, town.longitude], {
-        icon: L.icon({
-          iconUrl: 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png',
-          iconSize: [32, 32],
-          iconAnchor: [16, 32],
-          popupAnchor: [0, -32],
-        }),
-        title: town.municipality_name,
-      }).addTo(mapRef.current);
-
-      marker.bindTooltip(town.municipality_name, {
-        direction: 'top',
-        className: 'custom-tooltip',
-      });
-
-      marker.on('click', () => {
-        setSelectedTown(town);
-        setCurrentImageIndex(0);
-        mapRef.current.setView([town.latitude, town.longitude], 12);
-      });
-    });
-
-    const allLatLngs = [];
-
-    trip.legs.forEach(leg => {
-      if (leg.shape) {
-        // Valhalla → precitionn 6
-        const latlngs = polyline.decode(leg.shape, 6).map(([lat, lon]) => [lat, lon]);
-        L.polyline(latlngs, {
-          color: '#2563eb',          // tailwind "blue-600" aprox.
-          weight: 4,
-          opacity: 0.8,
-        }).addTo(mapRef.current);
-        allLatLngs.push(...latlngs);
+  if (!map) {
+    mapRef.current = L.map('map').setView([37.5443, -4.7278], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mapRef.current);
+  } else {
+    map.eachLayer(layer => {
+      if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+        map.removeLayer(layer);
       }
     });
+  }
 
+  const towns = results.towns;
+  const trip = results.trip;
 
-    // Center the map on the starting point
-    if (allLatLngs.length > 0) {
-      mapRef.current.fitBounds(allLatLngs, { padding: [20, 20] });
+  // Mostrar siempre los town markers
+  towns.forEach(town => {
+    const marker = L.marker([town.latitude, town.longitude], {
+      icon: L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32],
+      }),
+      title: town.municipality_name,
+    }).addTo(mapRef.current);
+
+    marker.bindTooltip(town.municipality_name, {
+      direction: 'top',
+      className: 'custom-tooltip',
+    });
+
+    marker.on('click', () => {
+      setSelectedTown(town);
+      setCurrentImageIndex(0);
+      mapRef.current.setView([town.latitude, town.longitude], 12);
+    });
+  });
+
+  // Si no hay trip, mostrar popup y salir sin pintar rutas
+  if (!trip) {
+    L.popup()
+      .setLatLng([37.5443, -4.7278])
+      .setContent("No se pudo generar la ruta. Inténtalo más tarde.")
+      .openOn(mapRef.current);
+    return;
+  }
+
+  const start = trip.locations?.[0];
+  const startingPoint = start ? [start.lat, start.lon] : [37.5443, -4.7278];
+
+  if (start) {
+    L.marker(startingPoint, {
+      icon: L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30],
+      }),
+      title: 'Punto de partida',
+    }).addTo(mapRef.current).bindTooltip('Punto de partida', {
+      direction: 'top',
+      className: 'custom-tooltip'
+    });
+  }
+
+  const allLatLngs = [];
+
+  if (trip.locations.length === 1) {
+    const { lat, lon } = trip.locations[0];
+    L.marker([lat, lon]).addTo(mapRef.current).bindPopup("Ubicación única");
+    mapRef.current.setView([lat, lon], 12);
+    return;
+  }
+
+  trip.legs.forEach(leg => {
+    if (leg.shape) {
+      const latlngs = polyline.decode(leg.shape, 6).map(([lat, lon]) => [lat, lon]);
+      L.polyline(latlngs, {
+        color: '#2563eb',
+        weight: 4,
+        opacity: 0.8,
+      }).addTo(mapRef.current);
+      allLatLngs.push(...latlngs);
     }
+  });
 
+  if (allLatLngs.length > 0) {
+    mapRef.current.fitBounds(allLatLngs, { padding: [20, 20] });
+  } else {
     mapRef.current.setView(startingPoint, 8);
-  }, [results]);
+  }
+}, [results]);
 
 
 
