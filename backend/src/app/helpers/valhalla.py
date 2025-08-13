@@ -13,7 +13,7 @@ async def filter_by_location_polygon(
     coords: Coordinate, minutes: int, towns: list[Town]
 ) -> list[Town]:
     """
-    Filters towns that are reachable within 60 minutes using Valhalla isochrone service.
+    Filters towns that are reachable within  using Valhalla isochrone service.
 
     Args:
          coords (Location): User's location coordinates.
@@ -23,7 +23,6 @@ async def filter_by_location_polygon(
          list[TownModel]: Towns inside the isochrone polygon.
     """
 
-    # ask valhalla to get isocrone de 60 minutes
     payload = {
         "locations": [{"lat": coords.lat, "lon": coords.lng}],
         "costing": "auto",
