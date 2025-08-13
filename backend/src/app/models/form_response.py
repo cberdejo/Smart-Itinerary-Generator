@@ -55,7 +55,7 @@ class FormResponse(BaseModel):
         Returns:
             _type_: _description_
         """
-        if v is None or isinstance(v, int):
+        if v is None or v == "" or isinstance(v, int):
             return v
         try:
             return int(v)
