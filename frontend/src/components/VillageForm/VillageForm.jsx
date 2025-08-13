@@ -219,9 +219,9 @@ export default function VillageForm({ onSubmit, loading }) {
               <input
                 type="radio"
                 name="beach"
-                value="indiferente"
+                value="indiference"
                 onChange={handleRadio}
-                checked={form.beach === 'indiferente'}
+                checked={form.beach === 'indiference'}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500"
                 disabled={loading}
               />
