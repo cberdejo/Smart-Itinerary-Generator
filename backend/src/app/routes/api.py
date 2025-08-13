@@ -37,7 +37,6 @@ async def health_check(session: Annotated[AsyncSession, Depends(get_session)]):
     # Check database
     try:
         await session.execute(text("SELECT 1"))
-
     except Exception as e:
         db_status = "disconnected"
         logger.error(f"Database health check failed: {e}")
