@@ -137,6 +137,11 @@ def load_info_to_postgres(
         - The function commits all changes to the database at the end of the process.
         - In case of an error, the transaction is rolled back to maintain data integrity.
     """
+
+    if not (new_towns or new_intangible_assets or new_real_estate_assets or new_images):
+        # Nothing to do; succeed fast without touching the database
+        return 0
+
     session = None
 
     try:
