@@ -23,6 +23,14 @@ dependencies = [
     "tenacity>=9.1.2",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+    "pytest-cov>=6.2.1",
+    "ruff>=0.11.12",
+]
+
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -30,7 +38,12 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[dependency-groups]
-dev = [
-    "ruff>=0.11.12",
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra"
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+filterwarnings = [
+  "ignore::pydantic.PydanticDeprecatedSince20",
 ]
