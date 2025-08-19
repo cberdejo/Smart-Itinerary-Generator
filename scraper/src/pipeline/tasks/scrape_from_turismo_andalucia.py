@@ -217,11 +217,10 @@ def scrap_tourism_url(
             driver.get(url)
         except TimeoutException as e:
             logger.error("Timeout loading %s: %s", url, e)
-            return None
+            raise
         except WebDriverException as e:
             logger.error("WebDriverException loading %s:\n%s", url, e)
-            return None
-
+            raise
         WebDriverWait(driver, 30).until(
             EC.presence_of_element_located((By.TAG_NAME, "h1"))
         )
