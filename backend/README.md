@@ -98,6 +98,41 @@ python src/pipeline/main.py
 - ⚠️ Make sure to have a Valhalla instance running.
 - You can try the endpoints with `curl`, `postman` or with [frontend module](/frontend/) (recommended) 
 
+## Run Tests
+
+Before running the test suite, ensure that you have installed the project with development dependencies
+
+1. Install package with dev dependencies with uv
+```bash
+uv pip install -e . --dev
+uv pip install -e ../utils-project 
+```
+1.  Or using pip
+```bash
+pip install -e .[dev]
+pip install -e ../utils-project
+```
+1.  Activate venv
+
+```bash
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+```
+
+### Running All Tests
+```bash
+pytest -v
+```
+###  Running Tests with Coverage
+```bash
+pytest --cov=app --cov-report=term-missing
+```
+
+### Running Specific Test Files
+```bash
+pytest test
+s/test_health.py -v
+``` 
+
 
 ## 🔌 Main API Endpoints
 
