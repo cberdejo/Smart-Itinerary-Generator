@@ -1,6 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import ARRAY, Double, JSON
-from pydantic import BaseModel
 
 
 class Town(SQLModel, table=True):
