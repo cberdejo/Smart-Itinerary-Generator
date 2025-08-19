@@ -7,19 +7,23 @@ logger = get_logger("minio")
 BUCKET = "reports"
 
 
-def get_minio():
+def get_minio() -> Minio:
     """
     Returns a Minio client instance.
 
     Returns:
         Minio: Minio client instance.
     """
-    return Minio(
-        endpoint=settings.minio_url,
-        access_key=settings.minio_user,
-        secret_key=settings.minio_password,
-        secure=False,
-    )
+    try:
+        return Minio(
+            endpoint=settings.minio_url,
+            access_key=settings.minio_user,
+            secret_key=settings.minio_password,
+            secure=False,
+        )
+    except Exception as e:
+        logger.error(f"Failed to create Minio client: {str(e)}")
+        raise
 
 
 def setup_minio_buckets(client: Minio):
