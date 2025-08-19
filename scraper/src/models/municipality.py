@@ -43,13 +43,17 @@ class IntangibleAsset(BaseModel):
     name: str
     municipality_name: str
     scope: str | None
-    typology: str | None
+    typology: set[str]
     description: str | None
     date: str | None
 
+    def typology_string(self) -> str:
+        """Returns typology as comma-separated string"""
+        return ", ".join(sorted(self.typology)) if self.typology else ""
+
     def __str__(self):
         desc = self.description or "sin descripción"
-        tip = self.typology or "tipología no especificada"
+        tip = self.typology_string() or "tipología no especificada"
         scope = self.scope or "ámbito no definido"
         date = self.date or "fecha no especificada"
         return f"El bien inmaterial '{self.name}'. Es un inmaterial de tipo {tip}, con un alcance {scope}. Descripción: {desc}. Fecha: {date}."

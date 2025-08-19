@@ -77,31 +77,32 @@ def trim_inmaterial(bien: dict) -> IntangibleAsset:
         - The "clob" key is expected to contain a "descripcion" subkey.
         - The "tipologiaList" key is expected to contain a "tipologia" subkey, which
           can be either a dictionary or a list of dictionaries. The "den_tipologia"
-          value is extracted from the first dictionary in the list if applicable.
+          value is extracted.
     """
 
     identifica = bien.get("identifica", {})
     clob = bien.get("clob", {})
     tipologia_list = bien.get("tipologiaList", {})
-    tipologia = tipologia_list.get("tipologia", {})
-    tipologia_name = ""
+    tipologia = tipologia_list.get("tipologia", [])
+
+    # Handle different typology formats and collect all unique typologies
+    typologies = set()
 
     if isinstance(tipologia, dict):
-        tipologia_name = tipologia.get("den_tipologia", "")
-    elif isinstance(tipologia, list) and len(tipologia) > 0:
-        tipologia_name = (
-            tipologia[0].get("den_tipologia", "")
-            if isinstance(tipologia[0], dict)
-            else ""
-        )
+        if den := tipologia.get("den_tipologia"):
+            typologies.add(den)
+    elif isinstance(tipologia, list):
+        for t in tipologia:
+            if isinstance(t, dict) and (den := t.get("den_tipologia")):
+                typologies.add(den)
 
     return IntangibleAsset(
         name=identifica.get("denominacion", ""),
-        municipality_name=identifica.get("municipio"),
-        scope=identifica.get("ambito", ""),
-        typology=tipologia_name,
-        description=clob.get("descripcion", ""),
-        date=identifica.get("fechasact", ""),
+        municipality_name=identifica.get("municipio", ""),
+        scope=identifica.get("ambito"),
+        typology=typologies,
+        description=clob.get("descripcion"),
+        date=identifica.get("fechasact"),
     )
 
 

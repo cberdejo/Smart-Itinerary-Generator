@@ -12,7 +12,7 @@ logger = get_logger("generate_embeddings")
 
 @task
 def generate_embeddings(
-    municipalities: List[MunicipalityInfo],
+    municipalities: List[MunicipalityInfo], batch_size: int = 32
 ) -> tuple[List[Town], List[Intangible], List[RealEstate], List[Image]]:
     """
     Generate embeddings for a list of municipalities and create corresponding database objects.
@@ -31,9 +31,7 @@ def generate_embeddings(
 
     if not municipalities:
         logger.warning("No municipalities provided to generate embeddings")
-        return []
-
-    BATCH_SIZE = 32
+        return ([], [], [], [])
 
     towns: List[Town] = []
     intangible_assets: List[Intangible] = []
@@ -44,9 +42,9 @@ def generate_embeddings(
 
     # Process in batches
     for batch_start in tqdm(
-        range(0, total_items, BATCH_SIZE), desc="Processing batches"
+        range(0, total_items, batch_size), desc="Processing batches"
     ):
-        batch_end = min(batch_start + BATCH_SIZE, total_items)
+        batch_end = min(batch_start + batch_size, total_items)
         current_batch = municipalities[batch_start:batch_end]
 
         try:
@@ -65,8 +63,10 @@ def generate_embeddings(
                         capital_city=municipality.capital,
                         latitude=municipality.latitude,
                         longitude=municipality.longitude,
-                        province_identifier=str(
-                            getattr(municipality, "province_identifier", None)
+                        province_identifier=(
+                            str(municipality.province_identifier)
+                            if municipality.province_identifier is not None
+                            else None
                         ),
                         description=municipality.description,
                         history=municipality.history,
@@ -84,7 +84,7 @@ def generate_embeddings(
                                     municipality_ine=str(municipality.ine),
                                     name=asset.name,
                                     scope=asset.scope,
-                                    typology=asset.typology,
+                                    typology=asset.typology_string(),
                                     description=asset.description,
                                     date=asset.date,
                                 )
