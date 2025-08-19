@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
 
 class ScraperSettings(BaseSettings):
@@ -14,8 +14,7 @@ class ScraperSettings(BaseSettings):
         alias="MINIO_ENDPOINT",
     )
 
-    class Config:
-        env_file = ".env"
+    model_config = ConfigDict(env_file=".env")
 
 
 settings = ScraperSettings()
