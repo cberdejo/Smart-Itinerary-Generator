@@ -74,6 +74,41 @@ MINIO_ROOT_USER="minioadmin"
 MINIO_ROOT_PASSWORD="minioadmin"
 MINIO_ENDPOINT="localhost:9000"
 ```
+## Run Tests
+
+Before running the test suite, ensure that you have installed the project with development dependencies
+
+1. Install package with dev dependencies with uv
+```bash
+uv pip install -e . --dev
+uv pip install -e ../utils-project 
+```
+1.  Or using pip
+```bash
+pip install -e .[dev]
+pip install -e ../utils-project
+```
+1.  Activate venv
+
+```bash
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+```
+
+### Running All Tests
+```bash
+pytest -v
+```
+###  Running Tests with Coverage
+```bash
+pytest --cov=src --cov-report=term-missing
+```
+
+### Running Specific Test Files
+```bash
+pytest test
+s/test_health.py -v
+``` 
+
 
 ## 🧪 Main Scripts Overview
 ### `src/pipeline/main.py`
