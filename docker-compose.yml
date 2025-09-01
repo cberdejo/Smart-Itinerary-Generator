@@ -6,8 +6,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: scraper
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -36,12 +34,9 @@ services:
     command: server /data --console-address ":9001"
 
 
-
   valhalla:
     image: ghcr.io/nilsnolde/docker-valhalla/valhalla:latest
     container_name: valhalla
-    ports:
-      - "8002:8002"  
     volumes:
       - ./valhalla_files:/custom_files
     environment:
