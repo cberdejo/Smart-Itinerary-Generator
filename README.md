@@ -117,7 +117,7 @@ Dedicated microservice for semantic operations shared by `backend` and `scraper`
 
 - Generates dense vectors via `/embed`
 - Scores relevance via `/rerank`
-- Builds canonical retrieval text via `/search-text/town*` and `/search-text/municipality*`
+- Builds canonical retrieval text via `/search-text/town*`
 
 ---
 

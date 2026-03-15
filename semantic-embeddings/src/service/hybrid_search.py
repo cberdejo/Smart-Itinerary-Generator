@@ -1,52 +1,10 @@
-from service.schemas import SearchTextMunicipality, SearchTextTown
+from service.schemas import SearchTextTown
 
 
 def _clean_text(value: str | None) -> str:
     if not value:
         return ""
     return " ".join(str(value).split())
-
-
-def build_search_text_from_municipality(municipality: SearchTextMunicipality) -> str:
-    parts: list[str] = []
-
-    name = _clean_text(municipality.name)
-    if name:
-        parts.append(f"Municipio: {name}.")
-
-    province_name = _clean_text(municipality.province_name)
-    if province_name:
-        parts.append(f"Provincia: {province_name}.")
-
-    if municipality.capital is not None:
-        parts.append(
-            "Es capital de provincia."
-            if municipality.capital
-            else "No es capital de provincia."
-        )
-
-    if municipality.has_beach is not None:
-        parts.append("Tiene playa." if municipality.has_beach else "No tiene playa.")
-
-    description = _clean_text(municipality.description)
-    if description:
-        parts.append(f"Descripcion: {description}")
-
-    history = _clean_text(municipality.history)
-    if history:
-        parts.append(f"Historia: {history}")
-
-    for asset in municipality.real_estate_assets:
-        asset_text = _clean_text(str(asset))
-        if asset_text:
-            parts.append(asset_text)
-
-    for asset in municipality.intangible_assets:
-        asset_text = _clean_text(str(asset))
-        if asset_text:
-            parts.append(asset_text)
-
-    return " ".join(parts).strip()
 
 
 def build_search_text_from_town(town: SearchTextTown) -> str:
@@ -112,4 +70,4 @@ def build_search_text_from_town(town: SearchTextTown) -> str:
             ).strip()
         )
 
-    return " ".join([p for p in parts if p]).strip()
+    return " ".join([part for part in parts if part]).strip()

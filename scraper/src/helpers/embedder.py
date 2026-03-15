@@ -40,7 +40,7 @@ def get_embedding(text: str | Sequence[str]):
     payload = {"input": texts, "model": settings.embedding_model}
 
     with httpx.Client(timeout=settings.semantic_embeddings_timeout_seconds) as client:
-        response = client.post(f"{base_url}/embed", json=payload)
+        response = client.post(f"{base_url}/api/v1/embed", json=payload)
         response.raise_for_status()
         vectors = _normalize_embed_response(response.json())
 

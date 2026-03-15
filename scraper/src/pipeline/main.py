@@ -1,9 +1,12 @@
+import os
+import time
+
+import httpx
 from prefect import flow
 from prefect.task_runners import ConcurrentTaskRunner
 
-
+from config.logger import get_logger
 from models.municipality import MunicipalityInfo
-
 
 from pipeline.tasks.scrape_from_turismo_andalucia import (
     get_towns_info_from_turismo_andalucia,
@@ -58,4 +61,5 @@ def main():
 
 
 if __name__ == "__main__":
+    wait_for_prefect_api()
     main()

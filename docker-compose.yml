@@ -21,6 +21,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+
   prefect-server:
     image: prefecthq/prefect:3-latest
     container_name: prefect-server

@@ -46,31 +46,12 @@ class SearchTextTown(BaseModel):
     intangible_assets: list[SearchTextIntangibleAsset] = Field(default_factory=list)
 
 
-class SearchTextMunicipality(BaseModel):
-    name: str | None = None
-    province_name: str | None = None
-    capital: bool | None = None
-    has_beach: bool | None = None
-    description: str | None = None
-    history: str | None = None
-    real_estate_assets: list[object] = Field(default_factory=list)
-    intangible_assets: list[object] = Field(default_factory=list)
-
-
 class SearchTownTextRequest(BaseModel):
     town: SearchTextTown
 
 
 class SearchTownTextsRequest(BaseModel):
     towns: list[SearchTextTown]
-
-
-class SearchMunicipalityTextRequest(BaseModel):
-    municipality: SearchTextMunicipality
-
-
-class SearchMunicipalityTextsRequest(BaseModel):
-    municipalities: list[SearchTextMunicipality]
 
 
 class SearchTextResponse(BaseModel):

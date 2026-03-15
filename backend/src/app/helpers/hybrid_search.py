@@ -116,7 +116,7 @@ def build_search_texts_from_towns(towns: list) -> list[str]:
         payload = {"towns": [_town_to_payload(town) for town in towns]}
 
         with httpx.Client(timeout=settings.semantic_embeddings_timeout_seconds) as client:
-            response = client.post(f"{base_url}/search-text/towns", json=payload)
+            response = client.post(f"{base_url}api/v1/search-text/towns", json=payload)
             response.raise_for_status()
             data = response.json()
 

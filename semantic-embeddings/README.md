@@ -1,9 +1,9 @@
 # Semantic Embeddings Service
 
 Microservicio para:
-- Generar embeddings (`/embed`)
-- Rerank de documentos (`/rerank`)
-- Construir texto canónico para búsqueda híbrida (`/search-text/*`)
+- Generar embeddings (`/api/v1/embed`)
+- Rerank de documentos (`/api/v1/rerank`)
+- Construir texto canonico para busqueda hibrida de municipios (`/api/v1/search-text/town*`)
 
 ## Variables de entorno
 

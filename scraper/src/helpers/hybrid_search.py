@@ -9,6 +9,25 @@ def _clean_text(value: str | None) -> str:
     return " ".join(str(value).split())
 
 
+def _serialize_typologies(typologies) -> list:
+    return [
+        typology.model_dump() if hasattr(typology, "model_dump") else typology
+        for typology in (typologies or [])
+    ]
+
+
+def _serialize_typology(typology) -> str | None:
+    if typology is None:
+        return None
+    if isinstance(typology, str):
+        return typology
+    if isinstance(typology, set):
+        return ", ".join(sorted(str(value) for value in typology if value))
+    if isinstance(typology, (list, tuple)):
+        return ", ".join(str(value) for value in typology if value)
+    return str(typology)
+
+
 def _fallback_build_search_text_from_municipality(municipality) -> str:
     parts: list[str] = []
 
@@ -39,30 +58,81 @@ def _fallback_build_search_text_from_municipality(municipality) -> str:
         parts.append(f"Historia: {history}")
 
     for asset in (getattr(municipality, "real_estate_assets", None) or []):
-        asset_text = _clean_text(str(asset))
-        if asset_text:
-            parts.append(asset_text)
+        asset_name = _clean_text(getattr(asset, "name", None))
+        desc = _clean_text(getattr(asset, "description", None))
+        characterization = _clean_text(getattr(asset, "characterization", None))
+        typologies = _clean_text(
+            _serialize_typologies(getattr(asset, "typologies", None))
+        )
+        parts.append(
+            " ".join(
+                [
+                    f"Patrimonio inmueble: {asset_name}." if asset_name else "",
+                    f"Descripcion: {desc}." if desc else "",
+                    f"Caracterizacion: {characterization}."
+                    if characterization
+                    else "",
+                    f"Tipologias: {typologies}." if typologies else "",
+                ]
+            ).strip()
+        )
 
     for asset in (getattr(municipality, "intangible_assets", None) or []):
-        asset_text = _clean_text(str(asset))
-        if asset_text:
-            parts.append(asset_text)
+        asset_name = _clean_text(getattr(asset, "name", None))
+        scope = _clean_text(getattr(asset, "scope", None))
+        typology = _clean_text(
+            _serialize_typology(getattr(asset, "typology", None))
+        )
+        asset_description = _clean_text(getattr(asset, "description", None))
+        date = _clean_text(getattr(asset, "date", None))
+        parts.append(
+            " ".join(
+                [
+                    f"Patrimonio inmaterial: {asset_name}." if asset_name else "",
+                    f"Alcance: {scope}." if scope else "",
+                    f"Tipologia: {typology}." if typology else "",
+                    f"Descripcion: {asset_description}."
+                    if asset_description
+                    else "",
+                    f"Fecha: {date}." if date else "",
+                ]
+            ).strip()
+        )
 
-    return " ".join(parts).strip()
+    return " ".join([part for part in parts if part]).strip()
 
 
-def _municipality_to_payload(municipality) -> dict:
+def _municipality_to_town_payload(municipality) -> dict:
     real_estate_assets = getattr(municipality, "real_estate_assets", None) or []
     intangible_assets = getattr(municipality, "intangible_assets", None) or []
     return {
-        "name": getattr(municipality, "name", None),
+        "municipality_name": getattr(municipality, "name", None),
         "province_name": getattr(municipality, "province_name", None),
-        "capital": getattr(municipality, "capital", None),
+        "capital_city": getattr(municipality, "capital", None),
         "has_beach": getattr(municipality, "has_beach", None),
         "description": getattr(municipality, "description", None),
         "history": getattr(municipality, "history", None),
-        "real_estate_assets": [str(asset) for asset in real_estate_assets],
-        "intangible_assets": [str(asset) for asset in intangible_assets],
+        "real_estate_assets": [
+            {
+                "name": getattr(asset, "name", None),
+                "description": getattr(asset, "description", None),
+                "characterization": getattr(asset, "characterization", None),
+                "typologies": _serialize_typologies(
+                    getattr(asset, "typologies", None)
+                ),
+            }
+            for asset in real_estate_assets
+        ],
+        "intangible_assets": [
+            {
+                "name": getattr(asset, "name", None),
+                "scope": getattr(asset, "scope", None),
+                "typology": _serialize_typology(getattr(asset, "typology", None)),
+                "description": getattr(asset, "description", None),
+                "date": getattr(asset, "date", None),
+            }
+            for asset in intangible_assets
+        ],
     }
 
 
@@ -73,12 +143,13 @@ def build_search_texts_from_municipalities(municipalities: list) -> list[str]:
     try:
         base_url = str(settings.semantic_embeddings_url).rstrip("/")
         payload = {
-            "municipalities": [
-                _municipality_to_payload(municipality) for municipality in municipalities
+            "towns": [
+                _municipality_to_town_payload(municipality)
+                for municipality in municipalities
             ]
         }
         with httpx.Client(timeout=settings.semantic_embeddings_timeout_seconds) as client:
-            response = client.post(f"{base_url}/search-text/municipalities", json=payload)
+            response = client.post(f"{base_url}api/v1/search-text/towns", json=payload)
             response.raise_for_status()
             data = response.json()
 
