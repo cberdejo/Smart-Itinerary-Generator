@@ -1,7 +1,10 @@
+# Git
+.git
+.gitignore
 
-# Node 
-
-node_modules/
+# Node
+node_modules
+frontend/node_modules
 
 
 
@@ -56,6 +59,8 @@ tests/
 test/
 
 # Project-Specific Folders
-
 screenshots/
 valhalla_files/
+
+# Frontend build output (se genera en el builder)
+frontend/dist/

@@ -54,6 +54,7 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      target: dev
     ports:
       - "5173:5173"
     volumes:
@@ -70,6 +71,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+      target: production
     container_name: backend
     ports:
       - "8000:8000"
@@ -84,7 +86,9 @@ services:
     build:
       context: .
       dockerfile: scraper/Dockerfile
+      target: production
     container_name: pipeline-runner
+    profiles: ["init"]
     depends_on:
       - postgres
       - minio

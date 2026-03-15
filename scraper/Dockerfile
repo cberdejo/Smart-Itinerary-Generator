@@ -1,35 +1,35 @@
-# --- BASE---------------------
-FROM python:3.12-slim AS base
+# --- RUNTIME (imagen final con Chromium mínimo)
+FROM python:3.12-slim-bookworm AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
     ca-certificates \
     chromium \
-    libnss3 \
-    libgconf-2-4 \
-    libxss1 \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libgtk-3-0 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-    
-# --- UV INSTALLER
-FROM base AS uv-installer
+
+# Chromium en PATH para webdriver-manager
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMIUM_FLAGS="--no-sandbox --headless --disable-gpu --disable-dev-shm-usage"
+
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-
-# --- BUILDER------------
-FROM uv-installer AS builder
+# --- BUILDER
+FROM runtime AS builder
 WORKDIR /app
 
 COPY utils-project /app/utils-project
 COPY scraper /app/scraper
 
 RUN uv venv .venv && \
-    uv pip install -e utils-project && \
-    uv pip install -e scraper
+    uv pip install -e utils-project -e scraper
 
-FROM builder AS production
+# --- PRODUCTION
+FROM runtime AS production
 WORKDIR /app
-CMD [ "uv", "run", "scraper/src/pipeline/main.py" ]
+
+COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app/utils-project /app/utils-project
+COPY --from=builder /app/scraper /app/scraper
+
+ENV PATH="/app/.venv/bin:$PATH"
+CMD ["uv", "run", "scraper/src/pipeline/main.py"]
