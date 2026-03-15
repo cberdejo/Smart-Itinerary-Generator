@@ -67,4 +67,48 @@ async def health_check(session: Annotated[AsyncSession, Depends(get_session)]):
     }
 
 
+@router.get("/bootstrap-status", summary="Bootstrap Status")
+async def bootstrap_status(session: Annotated[AsyncSession, Depends(get_session)]):
+    """
+    Returns whether initial data bootstrap has completed.
+
+    Bootstrap is considered ready when the `towns` table exists and at least one
+    row has non-null embeddings.
+    """
+
+    try:
+        total_towns_res = await session.execute(text("SELECT COUNT(*) FROM towns"))
+        total_towns = int(total_towns_res.scalar() or 0)
+
+        embedded_towns_res = await session.execute(
+            text("SELECT COUNT(*) FROM towns WHERE embeddings IS NOT NULL")
+        )
+        embedded_towns = int(embedded_towns_res.scalar() or 0)
+
+        is_ready = total_towns > 0 and embedded_towns > 0
+
+        return {
+            "ready": is_ready,
+            "message": (
+                "Bootstrap completed"
+                if is_ready
+                else "Bootstrap in progress or not executed yet"
+            ),
+            "counts": {
+                "towns": total_towns,
+                "embedded_towns": embedded_towns,
+            },
+        }
+    except Exception as e:
+        logger.warning(f"Bootstrap status check failed: {e}")
+        return {
+            "ready": False,
+            "message": "Bootstrap not ready yet",
+            "counts": {
+                "towns": 0,
+                "embedded_towns": 0,
+            },
+        }
+
+
 router.include_router(itineraryRouter, prefix="/itinerary")

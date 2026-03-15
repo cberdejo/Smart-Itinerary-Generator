@@ -30,3 +30,19 @@ export const generateItinerary = async (formData) => {
     throw error;
   }
 };
+
+/**
+ * Fetch bootstrap readiness for initial pipeline data.
+ *
+ * @returns {Promise<{ready: boolean, message: string, counts?: {towns: number, embedded_towns: number}}>}
+ */
+export const getBootstrapStatus = async () => {
+  const response = await fetch(`${API_BASE_URL}/bootstrap-status`);
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result?.message || 'No se pudo comprobar el estado de inicialización');
+  }
+
+  return result;
+};
