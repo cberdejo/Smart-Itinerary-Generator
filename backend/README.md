@@ -60,7 +60,12 @@ PORT=8000
 VALHALLA_URL=http://valhalla:8002
 
 # PostgreSQL database credentials
-PGURI=postgresql+psycopg2://your_user:your_password@your_host:5432/your_database
+PGURI=postgresql+asyncpg://your_user:your_password@your_host:5432/your_database
+
+# External embeddings API
+SEMANTIC_EMBEDDINGS_URL=http://semantic-embeddings:8080
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+RERANKER_MODEL=cross-encoder/ms-marco-MiniLM-L-6-v2
 
 ```
 
@@ -79,7 +84,6 @@ docker run -p 8000:8000 smart-itinerary-api
 ### 🔸 Using [`uv`](https://github.com/astral-sh/uv)
 
 ```bash
-uv pip install -e ../utils-project
 uv pip install -e .
 uv run src/api/main.py
 ```
@@ -90,7 +94,6 @@ uv run src/api/main.py
 python -m venv .venv
 source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 
-pip install -e ../utils-project
 pip install -e .
 python src/pipeline/main.py
 ```
@@ -105,12 +108,10 @@ Before running the test suite, ensure that you have installed the project with d
 1. Install package with dev dependencies with uv
 ```bash
 uv pip install -e . --dev
-uv pip install -e ../utils-project 
 ```
 1.  Or using pip
 ```bash
 pip install -e .[dev]
-pip install -e ../utils-project
 ```
 1.  Activate venv
 

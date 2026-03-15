@@ -2,12 +2,19 @@ from typing import List
 from tqdm import tqdm
 from prefect import task
 
-from app_config.db_models import Town, Intangible, RealEstate, Image
+from models.db_models import Town, Intangible, RealEstate, Image
 from models.municipality import MunicipalityInfo
-from app_config.logger import get_logger
-from app_helpers.embedder import get_embedding
+from config.logger import get_logger
+from helpers.embedder import get_embedding
+from helpers.hybrid_search import build_search_texts_from_municipalities
 
 logger = get_logger("generate_embeddings")
+
+
+def _to_float_list(vector) -> list[float]:
+    if hasattr(vector, "tolist"):
+        vector = vector.tolist()
+    return [float(value) for value in vector]
 
 
 @task
@@ -17,7 +24,7 @@ def generate_embeddings(
     """
     Generate embeddings for a list of municipalities and create corresponding database objects.
     This function processes a list of MunicipalityInfo objects, generates embeddings using
-    the SentenceTransformer model, and creates SQLAlchemy objects for towns, intangible assets,
+    the configured embedding backend, and creates SQLAlchemy objects for towns, intangible assets,
     and real estate assets. The processing is done in batches to optimize performance.
     Args:
         municipalities (List[MunicipalityInfo]): A list of MunicipalityInfo objects containing
@@ -48,7 +55,8 @@ def generate_embeddings(
         current_batch = municipalities[batch_start:batch_end]
 
         try:
-            batch_strings = [item.get_embedding_text() for item in current_batch]
+            # Canonical text shared with backend retrieval (dense + sparse alignment)
+            batch_strings = build_search_texts_from_municipalities(current_batch)
             batch_embeddings = get_embedding(batch_strings)
 
             # Create Objects SQLAlchemy
@@ -72,7 +80,7 @@ def generate_embeddings(
                         history=municipality.history,
                         province_name=getattr(municipality, "province_name", None),
                         has_beach=municipality.has_beach,
-                        embeddings=embedding.tolist(),
+                        embeddings=_to_float_list(embedding),
                     )
                     towns.append(town)
 

@@ -1,7 +1,7 @@
 import httpx
 from shapely.geometry import Point, Polygon
-from app_config.db_models import Town
-from app_config.logger import get_logger
+from app.models.db_models import Town
+from app.config.logger import get_logger
 from app.config.settings import settings
 from app.models.form_response import Coordinate
 from app.models.valhalla import Trip

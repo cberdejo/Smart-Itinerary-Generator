@@ -1,4 +1,4 @@
-from app_config.logger import get_logger
+from config.logger import get_logger
 from minio import Minio, S3Error
 from config.settings import settings
 

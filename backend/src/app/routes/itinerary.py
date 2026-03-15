@@ -5,7 +5,7 @@ from typing import Annotated
 from app.controllers.get_itinerary import get_itinerary
 from app.helpers.db import get_session
 from app.models.form_response import FormResponse
-from app_config.logger import get_logger
+from app.config.logger import get_logger
 
 
 logger = get_logger(__name__)

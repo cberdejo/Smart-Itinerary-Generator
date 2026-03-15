@@ -2,7 +2,7 @@
 
 This module is responsible for scraping data from the web. It uses various libraries to fetch and parse HTML content, extract relevant information, and store it in a structured format. 
 
-This module contains a data pipeline for collecting, processing, and storing cultural and tourism information about municipalities in Andalusia, Spain. It integrates scraping, enrichment, embedding generation, and database storage using Prefect, Selenium, Sentence Transformers, and SQLAlchemy.
+This module contains a data pipeline for collecting, processing, and storing cultural and tourism information about municipalities in Andalusia, Spain. It integrates scraping, enrichment, embedding generation, and database storage using Prefect, Selenium, semantic-embeddings API, and SQLAlchemy.
 
 
 ## 🗂️ Project Structure
@@ -47,7 +47,6 @@ This module contains a data pipeline for collecting, processing, and storing cul
 ### 🔸 Using [`uv`](https://github.com/astral-sh/uv)
 
 ```bash
-uv pip install -e ../utils-project
 uv pip install -e .
 uv run src/pipeline/main.py
 ```
@@ -58,7 +57,6 @@ uv run src/pipeline/main.py
 python -m venv .venv
 source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 
-pip install -e ../utils-project
 pip install -e .
 python src/pipeline/main.py
 ```
@@ -81,12 +79,10 @@ Before running the test suite, ensure that you have installed the project with d
 1. Install package with dev dependencies with uv
 ```bash
 uv pip install -e . --dev
-uv pip install -e ../utils-project 
 ```
 1.  Or using pip
 ```bash
 pip install -e .[dev]
-pip install -e ../utils-project
 ```
 1.  Activate venv
 
@@ -119,7 +115,7 @@ Coordinates the overall pipeline execution.
    - Fetch **towns with beaches** from Wikipedia.
    - Retrieve **cultural assets** (real estate and intangible) from IAPH.
 4. **Merge all data** into unified municipality records.
-5. **Generate embeddings** using Sentence Transformers.
+5. **Generate embeddings** using semantic-embeddings API.
 6. **Load data into PostgreSQL**, including towns, cultural assets, and images.
 7. **Upload a metadata report** of the run to MinIO.
 
@@ -185,10 +181,10 @@ Merges multiple data sources (beach info, tourism content, cultural assets) into
 ---
 ### `generate_embeddings.py`
 **Purpose:**  
-Generates sentence embeddings for municipalities and maps them to database objects for towns, intangible assets, real estate, and images.
+Generates semantic embeddings for municipalities and maps them to database objects for towns, intangible assets, real estate, and images.
 
 **Highlights:**
-- Uses `SentenceTransformer` (MiniLM model).
+- Uses an external `semantic-embeddings` API with a MiniLM model family.
 - Converts text content to vector embeddings.
 - Constructs SQLAlchemy-compatible data models for downstream insertion.
 - Handles batch processing with logging and error handling.
@@ -280,6 +276,4 @@ Then:
 ## 📄 License
 
 MIT – free to use, modify and distribute.
-
-
 

@@ -6,9 +6,9 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
-from app_config.logger import get_logger
+from config.logger import get_logger
 from helpers.postgres import get_engine, get_session
-from app_config.db_models import Town, Intangible, RealEstate, Image
+from models.db_models import Town, Intangible, RealEstate, Image
 from sqlmodel import SQLModel
 
 from prefect import task

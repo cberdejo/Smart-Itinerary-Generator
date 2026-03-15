@@ -14,6 +14,7 @@
 ![BeautifulSoup](https://img.shields.io/badge/BeautifulSoup-4B0082?style=for-the-badge)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-504848?style=for-the-badge&logo=sqlalchemy&logoColor=white)
 ![SentenceTransformers](https://img.shields.io/badge/SentenceTransformer-FFCC00?style=for-the-badge)
+![Semantic%20Embeddings](https://img.shields.io/badge/Semantic%20Embeddings-FFCC00?style=for-the-badge)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=for-the-badge&logo=leaflet&logoColor=white)
@@ -28,8 +29,8 @@
 - [🐳 Run with Docker](#run-with-docker)
 - [🧠 Why Use Embeddings?](#why-use-embeddings)
 - [📦 Modules Summaries](#Module-Summaries)
+  - [semantic-embeddings](#semantic-embeddings)
   - [scraper](#scraper)
-  - [utils-project](#utils-project)
   - [backend](#backend)
   - [frontend](#frontend)
 - [📄 License](#license)
@@ -37,14 +38,14 @@
 
 ## 📦 Project Overview <a id="project-overview"></a>
 
-This large project is divided into three modules. First, data from municipalities in Andalusia is scraped and used to generate a database with embeddings. These embeddings are then used by an `API` that filters based on user preferences and searches using cosine similarity to find the municipalities that best match what the user is looking for. Finally, a frontend displays both a form to submit data to the `API` and an interactive map with the results. The project mainly focuses on filtering by monuments, historical heritage, and popular festivals and traditions.
+This large project is divided into three backend services plus frontend. First, data from municipalities in Andalusia is scraped and used to generate a database with embeddings. Embeddings and semantic text/rerank are served through a dedicated `semantic-embeddings` microservice. Then the itinerary `API` filters based on user preferences and searches using cosine similarity to find the municipalities that best match what the user is looking for. Finally, a frontend displays both a form to submit data to the `API` and an interactive map with the results.
 
 ## 🗂️ Project Structure <a id="project-structure"></a>
 
 - [📁 backend](./backend/README.md)
 - [📁 frontend](./frontend/README.md)
 - [📁 scraper](./scraper/README.md)
-- [📁 utils-project](./utils-project/README.md)
+- [📁 semantic-embeddings](./semantic-embeddings/README.md)
 - [📁 screenshots](./screenshots/)
   - 📄 [minio.png](./screenshots/minio.png)
   - 📄 [postgres.png](./screenshots/postgres.png)
@@ -68,7 +69,7 @@ This large project is divided into three modules. First, data from municipalitie
 - **Selenium**: Automates interactions with dynamic websites.
 - **BeautifulSoup**: Parses and extracts data from static HTML.
 - **SQLAlchemy**: ORM for interacting with PostgreSQL.
-- **SentenceTransformer**: Generates semantic embeddings for similarity comparison.
+- **Semantic-Embeddings API**: External embedding/reranking inference service used by scraper and backend.
 FastAPI: Lightweight, high-performance web framework for building backend APIs.
 - **React**: JavaScript library for building interactive user interfaces on the frontend.
 - **Leaflet**: Open-source JavaScript library for interactive maps, used to display and select town locations.
@@ -111,8 +112,17 @@ This makes `scikit-learn` a clean and practical choice for computing similarity 
 
 ## 📦 Module Summaries
 
+### [`semantic-embeddings`](/semantic-embeddings/)
+Dedicated microservice for semantic operations shared by `backend` and `scraper`.
+
+- Generates dense vectors via `/embed`
+- Scores relevance via `/rerank`
+- Builds canonical retrieval text via `/search-text/town*` and `/search-text/municipality*`
+
+---
+
 ###  [`scraper`](/scraper/)
-This module automates the collection of tourism and cultural data from Andalusian towns. It leverages **Selenium**, **BeautifulSoup**, **Prefect**, and **Sentence Transformers** to:
+This module automates the collection of tourism and cultural data from Andalusian towns. It leverages **Selenium**, **BeautifulSoup**, **Prefect**, and the **semantic-embeddings API** to:
 
 - Fetch town data from official sources (Junta de Andalucía, Wikipedia, IAPH, and andalucia.org)
 - Generate semantic **embeddings**
@@ -121,18 +131,6 @@ This module automates the collection of tourism and cultural data from Andalusia
 
 📌 *Example:*
 ![prefect-server](./screenshots/prefect-server.png)
-
----
-
-###  [`utils-project`](/utils-project/)
-This is a shared utility library used by both the scraper and backend modules. It includes:
-
-- 📦 SQLAlchemy ORM models for towns, real estate heritage, intangible cultural assets, and town images
-- 🧠 `embedder.py` module for generating sentence embeddings
-- 🧾 A configurable logging system
-
-📌 *Example:*
-![models](./screenshots/postgres.png)
 
 ---
 

@@ -2,7 +2,7 @@
 from app.models.generic_response import GenericResponse
 from app.models.municiaplity import TownOut
 from app.models.itinerary import Itinerary
-from app_config.db_models import Town, Image, RealEstate, Intangible
+from app.models.db_models import Town, Image, RealEstate, Intangible
 import json
 
 

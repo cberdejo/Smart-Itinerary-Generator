@@ -1,6 +1,7 @@
 import numpy as np
 from pydantic import ValidationError
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sqlmodel import select
 from sqlalchemy.orm import selectinload
 
@@ -10,31 +11,105 @@ from app.models.itinerary import Itinerary
 from app.models.form_response import FormResponse, Coordinate
 from app.helpers.valhalla import filter_by_location_polygon, get_optimal_route
 
-from app_config.logger import get_logger
-from app_config.db_models import Town
-from app_helpers.embedder import get_embedding
+from app.config.logger import get_logger
+from app.models.db_models import Town
+from app.helpers.embedder import get_embedding, rerank_documents
+from app.helpers.hybrid_search import build_search_texts_from_towns
 
 logger = get_logger(__name__)
 
 
-def rank_towns_by_similarity(user_embedding, towns: list[Town]) -> list[Town]:
+def rank_towns_by_similarity(
+    user_embedding, query_text: str, towns: list[Town], use_rerank: bool = True
+) -> list[Town]:
     """
-    Ranks towns based on cosine similarity to the user's embedding vector.
+    Ranks towns with hybrid retrieval:
+      1) Dense semantic similarity (embeddings)
+      2) Sparse lexical similarity (TF-IDF cosine)
+      3) Reciprocal Rank Fusion
+      4) Optional CrossEncoder reranking
 
     Args:
-         user_emb (np.ndarray): The user's embedding vector.
-         towns (list[TownModel]): List of towns to rank.
+         user_embedding (np.ndarray): User embedding vector.
+         query_text (str): Raw query text built from user form.
+         towns (list[Town]): Candidate towns.
+         use_rerank (bool): Whether to rerank top fused candidates.
 
     Returns:
-         list[TownModel]: Sorted list of towns (most similar first).
+         list[Town]: Sorted list of towns (most relevant first).
     """
     try:
-        town_vectors = np.array([town.embeddings for town in towns])
-        similarities = cosine_similarity([user_embedding], town_vectors)[0]
-        sorted_towns = sorted(zip(towns, similarities), key=lambda x: -x[1])
-        return [town for town, _ in sorted_towns]
+        if not towns:
+            return []
+
+        query_text = (query_text or "").strip()
+
+        # Dense scores
+        dense_scores = []
+        for town in towns:
+            if town.embeddings is None:
+                dense_scores.append(0.0)
+                continue
+            score = cosine_similarity([user_embedding], [town.embeddings])[0][0]
+            dense_scores.append(float(score))
+
+        # If query is empty, keep dense-only behavior (important fallback).
+        if not query_text:
+            sorted_pairs = sorted(
+                zip(towns, dense_scores), key=lambda pair: pair[1], reverse=True
+            )
+            return [town for town, _ in sorted_pairs]
+
+        # Sparse scores
+        town_documents = build_search_texts_from_towns(towns)
+        try:
+            vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1, 2))
+            matrix = vectorizer.fit_transform([query_text] + town_documents)
+            sparse_scores = cosine_similarity(matrix[0:1], matrix[1:]).flatten().tolist()
+        except Exception as sparse_error:
+            logger.warning(f"Sparse scoring failed, fallback to dense-only: {sparse_error}")
+            sparse_scores = [0.0] * len(towns)
+
+        dense_rank = sorted(range(len(towns)), key=lambda i: dense_scores[i], reverse=True)
+        sparse_rank = sorted(
+            range(len(towns)), key=lambda i: sparse_scores[i], reverse=True
+        )
+
+        # Reciprocal Rank Fusion
+        rrf_k = 60
+        fused_scores = [0.0] * len(towns)
+        for rank_position, town_idx in enumerate(dense_rank):
+            fused_scores[town_idx] += 1.0 / (rrf_k + rank_position + 1)
+        for rank_position, town_idx in enumerate(sparse_rank):
+            fused_scores[town_idx] += 1.0 / (rrf_k + rank_position + 1)
+
+        fused_rank = sorted(
+            range(len(towns)), key=lambda i: fused_scores[i], reverse=True
+        )
+
+        if use_rerank and fused_rank:
+            top_n = min(15, len(fused_rank))
+            top_indices = fused_rank[:top_n]
+            top_docs = [town_documents[i] for i in top_indices]
+
+            try:
+                rerank_scores = rerank_documents(query_text, top_docs)
+                reranked_top = [
+                    idx
+                    for idx, _ in sorted(
+                        zip(top_indices, rerank_scores),
+                        key=lambda pair: pair[1],
+                        reverse=True,
+                    )
+                ]
+                remaining = [idx for idx in fused_rank if idx not in set(top_indices)]
+                fused_rank = reranked_top + remaining
+            except Exception as rerank_error:
+                logger.warning(f"Reranking failed, keeping fused order: {rerank_error}")
+
+        return [towns[i] for i in fused_rank]
     except Exception as e:
-        logger.error(f"Error calculating similarity: {e}")
+        logger.error(f"Error calculating hybrid ranking: {e}")
         return towns  # fallback
 
 
@@ -83,9 +158,16 @@ async def get_itinerary(form_data: FormResponse, db_session) -> GenericResponse:
                     "Valhalla isochrone filtering failed, proceeding without location filtering"
                 )
 
-        # Step 2: Rank towns using semantic similarity
-        form_embedding = get_embedding(form_data.get_embedding_text())
-        ranked_towns = rank_towns_by_similarity(form_embedding, towns)
+        # Step 2: Hybrid retrieval + reranking
+        query_text = form_data.get_embedding_text()
+        dense_query_text = query_text if query_text else "pueblos de andalucia"
+        form_embedding = get_embedding(dense_query_text)
+        ranked_towns = rank_towns_by_similarity(
+            form_embedding,
+            query_text=query_text,
+            towns=towns,
+            use_rerank=bool(query_text.strip()),
+        )
         top_towns = ranked_towns[:3]
 
         if not top_towns:

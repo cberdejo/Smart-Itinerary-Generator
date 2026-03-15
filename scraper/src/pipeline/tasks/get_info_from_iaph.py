@@ -1,5 +1,5 @@
 from models.municipality import IntangibleAsset, RealEstateAsset, RealEstateTypology
-from app_config.logger import get_logger
+from config.logger import get_logger
 import asyncio
 import httpx
 import json

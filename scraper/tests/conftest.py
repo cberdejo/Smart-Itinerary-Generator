@@ -4,7 +4,7 @@ import numpy as np
 from unittest.mock import MagicMock, patch
 from sqlmodel import SQLModel, Session
 import contextlib
-from app_config.db_models import Town
+from models.db_models import Town
 from models.municipality import (
     MunicipalityInfo,
     RealEstateAsset,

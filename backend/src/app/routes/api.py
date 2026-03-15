@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import text
 
-from app_config.logger import get_logger
+from app.config.logger import get_logger
 from app.config.settings import settings
 from app.helpers.db import get_session
 from app.routes.itinerary import router as itineraryRouter

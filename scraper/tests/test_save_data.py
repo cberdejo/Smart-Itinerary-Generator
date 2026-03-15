@@ -1,6 +1,6 @@
 from pipeline.tasks import save_data as mod_save_data
 from unittest.mock import patch
-from app_config.db_models import Intangible, Town, RealEstate, Image
+from models.db_models import Intangible, Town, RealEstate, Image
 from sqlmodel import select
 from sqlalchemy import func
 
