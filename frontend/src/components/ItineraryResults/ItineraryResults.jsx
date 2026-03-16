@@ -31,6 +31,10 @@ export default function ItineraryResults({ results, onReset }) {
   const [showFullHistory, setShowFullHistory] = useState(false);
   const maxChars = 300;
 
+  // Normalizar resultados para evitar errores con valores nulos/undefined
+  const towns = Array.isArray(results?.towns) ? results.towns : [];
+  const trip = results?.trip ?? null;
+
 
 useEffect(() => {
   const map = mapRef.current;
@@ -47,9 +51,6 @@ useEffect(() => {
       }
     });
   }
-
-  const towns = results.towns;
-  const trip = results.trip;
 
   // Mostrar siempre los town markers
   towns.forEach(town => {
@@ -146,7 +147,7 @@ useEffect(() => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 
               <p className="text-gray-600">
-                Descubre {results.towns.length} destinos únicos para tu viaje
+                Descubre {towns.length} destinos únicos para tu viaje
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
@@ -183,7 +184,16 @@ useEffect(() => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
-              {results.towns.map((town) => (
+              {towns.map((town) => {
+                const images = Array.isArray(town.images) ? town.images : [];
+                const realEstateAssets = Array.isArray(town.real_estate_assets)
+                  ? town.real_estate_assets
+                  : [];
+                const intangibleAssets = Array.isArray(town.intangible_assets)
+                  ? town.intangible_assets
+                  : [];
+
+                return (
                 <div
                   key={town.municipality_ine}
                   className={`group cursor-pointer rounded-lg border overflow-hidden transition-all duration-300
@@ -198,9 +208,9 @@ useEffect(() => {
                 >
                   {/* Image */}
                   <div className="relative h-24 bg-gradient-to-br from-blue-400 to-blue-600">
-                    {Array.isArray(town.images) && town.images[0]?.url ? (
+                    {images[0]?.url ? (
                       <img
-                        src={town.images[0].url}
+                        src={images[0].url}
                         alt={town.municipality_name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
@@ -227,33 +237,33 @@ useEffect(() => {
 
                     {/* Tags */}
                     <div className="space-y-1">
-                      {town.real_estate_assets.length > 0 && (
+                      {realEstateAssets.length > 0 && (
                         <div className="flex flex-wrap gap-1 items-center">
                           <Building className="w-3 h-3 text-blue-600" />
-                          {town.real_estate_assets.slice(0, 2).map((asset, i) => (
+                          {realEstateAssets.slice(0, 2).map((asset, i) => (
                             <span key={i} className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full">
                               {asset.name}
                             </span>
                           ))}
-                          {town.real_estate_assets.length > 2 && (
+                          {realEstateAssets.length > 2 && (
                             <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">
-                              +{town.real_estate_assets.length - 2}
+                              +{realEstateAssets.length - 2}
                             </span>
                           )}
                         </div>
                       )}
 
-                      {town.intangible_assets.length > 0 && (
+                      {intangibleAssets.length > 0 && (
                         <div className="flex flex-wrap gap-1 items-center">
                           <Calendar className="w-3 h-3 text-green-600" />
-                          {town.intangible_assets.slice(0, 2).map((asset, i) => (
+                          {intangibleAssets.slice(0, 2).map((asset, i) => (
                             <span key={i} className="text-[10px] bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
                               {asset.name}
                             </span>
                           ))}
-                          {town.intangible_assets.length > 2 && (
+                          {intangibleAssets.length > 2 && (
                             <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">
-                              +{town.intangible_assets.length - 2}
+                              +{intangibleAssets.length - 2}
                             </span>
                           )}
                         </div>
@@ -261,7 +271,7 @@ useEffect(() => {
                     </div>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
         </div>
@@ -285,15 +295,26 @@ useEffect(() => {
             </div>
             {/* Image Carousel */}
             <div className=" relative w-128 aspect-ratio-16/9 overflow-hidden rounded-2xl  mx-auto">
-              <img
-                src={selectedTown.images[currentImageIndex].url}
-                alt={selectedTown.images[currentImageIndex].alt || selectedTown.municipality_name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute" />
+              {Array.isArray(selectedTown.images) && selectedTown.images.length > 0 ? (
+                <>
+                  <img
+                    src={selectedTown.images[currentImageIndex]?.url}
+                    alt={
+                      selectedTown.images[currentImageIndex]?.alt ||
+                      selectedTown.municipality_name
+                    }
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute" />
+                </>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600">
+                  <Home className="w-12 h-12 text-white opacity-80" />
+                </div>
+              )}
 
               {/* Navigation buttons */}
-              {selectedTown.images.length > 1 && (
+              {Array.isArray(selectedTown.images) && selectedTown.images.length > 1 && (
                 <>
                   <button
                     onClick={() => setCurrentImageIndex(prev =>
@@ -315,7 +336,7 @@ useEffect(() => {
 
               )}
               {/* Image counter */}
-              {selectedTown.images.length > 1 && (
+              {Array.isArray(selectedTown.images) && selectedTown.images.length > 1 && (
                 <div className="flex justify-between items-center mt-3">
                   <span className="text-sm text-gray-500">
                     {currentImageIndex + 1} de {selectedTown.images.length} imágenes
