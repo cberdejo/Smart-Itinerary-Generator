@@ -53,13 +53,6 @@ def rank_towns_by_similarity(
             score = cosine_similarity([user_embedding], [town.embeddings])[0][0]
             dense_scores.append(float(score))
 
-        # If query is empty, keep dense-only behavior (important fallback).
-        if not query_text:
-            sorted_pairs = sorted(
-                zip(towns, dense_scores), key=lambda pair: pair[1], reverse=True
-            )
-            return [town for town, _ in sorted_pairs]
-
         # Sparse scores
         town_documents = build_search_texts_from_towns(towns)
         try:
@@ -159,14 +152,14 @@ async def get_itinerary(form_data: FormResponse, db_session) -> GenericResponse:
                 )
 
         # Step 2: Hybrid retrieval + reranking
-        query_text = form_data.get_embedding_text()
+        query_text = form_data.get_embedding_text().strip()
         dense_query_text = query_text if query_text else "pueblos de andalucia"
         form_embedding = get_embedding(dense_query_text)
         ranked_towns = rank_towns_by_similarity(
             form_embedding,
-            query_text=query_text,
+            query_text=dense_query_text,
             towns=towns,
-            use_rerank=bool(query_text.strip()),
+            use_rerank=True,
         )
         top_towns = ranked_towns[:3]
 
